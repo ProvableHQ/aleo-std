@@ -1,0 +1,31 @@
+[package]
+name = "aleo-std"
+version = "0.1.0"
+authors = ["howardwu <howardwu@berkeley.edu>"]
+license = "GPL-3.0"
+edition = "2018"
+
+[workspace]
+members = [ "time", "timed", "timer" ]
+
+[dependencies]
+aleo-std-time = { path = "./time", default-features = false }
+aleo-std-timed = { path = "./timed", default-features = false }
+aleo-std-timer = { path = "./timer", default-features = false }
+
+[dev-dependencies.rusty-hook]
+version = "0.11.2"
+
+[features]
+default = ["full"]
+
+# Supported feature modes
+
+full = ["time", "timed", "timer"]
+wasm = []
+
+# aleo-std feature configuration
+
+time = ["aleo-std-time/time"]
+timed = ["aleo-std-timed/timed"]
+timer = ["aleo-std-timer/timer"]

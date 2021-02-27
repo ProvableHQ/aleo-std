@@ -1,0 +1,21 @@
+[package]
+name = "aleo-std-time"
+version = "0.1.0"
+authors = ["howardwu <howardwu@berkeley.edu>"]
+license = "GPL-3.0"
+edition = "2018"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = "0.6"
+proc-macro2 = "0.4"
+
+[dependencies.syn]
+version = "0.15.42"
+features = ["full"]
+
+[features]
+default = []
+time = []
