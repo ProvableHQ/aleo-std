@@ -60,3 +60,8 @@ fn foo() -> u32 {
     x + y
 }
 ```
+
+## Roadmap
+
+- `log`
+- `std`

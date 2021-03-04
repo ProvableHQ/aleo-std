@@ -2,6 +2,7 @@
 name = "aleo-std"
 version = "0.1.0"
 authors = ["howardwu <howardwu@berkeley.edu>"]
+exclude = ["**/*.md"]
 license = "GPL-3.0"
 edition = "2018"
 
