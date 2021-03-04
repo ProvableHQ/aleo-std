@@ -28,3 +28,20 @@ fn test_timer_lap_finish() {
     lap!(timer);
     finish!(timer);
 }
+
+#[test]
+fn test_timer_timer_finish_finish() {
+    let hello = timer!("Hello");
+    let world = timer!("World");
+    finish!(world);
+    finish!(hello);
+}
+
+#[test]
+fn test_timer_timer_lap_finish_finish() {
+    let hello = timer!("Hello World");
+    let world = timer!("Testing");
+    lap!(hello);
+    finish!(world);
+    finish!(hello);
+}

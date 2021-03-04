@@ -5,8 +5,10 @@ authors = ["howardwu <howardwu@berkeley.edu>"]
 license = "GPL-3.0"
 edition = "2018"
 
-[dependencies]
+[dependencies.colored]
+version = "2"
+optional = true
 
 [features]
 default = []
-timer = []
+timer = ["colored"]

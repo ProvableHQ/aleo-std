@@ -27,8 +27,10 @@ use std::{
     time::Instant,
 };
 
+use colored::{ColoredString, Colorize};
+
 pub static NUM_INDENT: AtomicUsize = AtomicUsize::new(0);
-pub const PAD_CHAR: &str = "·";
+pub const PAD_CHAR: &str = " ";
 
 /// When this struct is dropped, it logs a message stating its name and how long
 /// the execution time was. Can be used to time functions or other critical areas.
@@ -75,7 +77,10 @@ impl<'name> Timer<'name> {
             finished: AtomicBool::new(false),
             extra_info,
         };
+        // Print the start message.
         timer.print(TimerState::Start, None);
+        // Increment the indentation by 1.
+        NUM_INDENT.fetch_add(1, Ordering::Relaxed);
         Some(timer)
     }
 
@@ -93,8 +98,21 @@ impl<'name> Timer<'name> {
     }
 
     /// Returns how long the timer has been running for.
-    pub fn elapsed(&self) -> std::time::Duration {
-        self.start_time.elapsed()
+    pub fn elapsed(&self) -> ColoredString {
+        let elapsed = self.start_time.elapsed();
+        let secs = elapsed.as_secs();
+        let millis = elapsed.subsec_millis();
+        let micros = elapsed.subsec_micros() % 1000;
+        let nanos = elapsed.subsec_nanos() % 1000;
+        if secs != 0 {
+            format!("{}.{}s", secs, millis).bold()
+        } else if millis > 0 {
+            format!("{}.{}ms", millis, micros).bold()
+        } else if micros > 0 {
+            format!("{}.{}µs", micros, nanos).bold()
+        } else {
+            format!("{}ns", elapsed.subsec_nanos()).bold()
+        }
     }
 
     /// Outputs a log message with a target of 'Lap' showing the current elapsed time, but does not
@@ -111,47 +129,71 @@ impl<'name> Timer<'name> {
     /// `finish()` again will have no effect.
     pub fn finish(&self, args: Option<fmt::Arguments>) {
         if !self.finished.load(Ordering::SeqCst) {
+            // Decrement the indentation by 1.
+            NUM_INDENT.fetch_sub(1, Ordering::Relaxed);
             self.finished.store(true, Ordering::SeqCst);
             self.print(TimerState::Finish, args);
         }
     }
 
     fn print(&self, state: TimerState, args: Option<fmt::Arguments>) {
-        match (state, self.extra_info.as_ref(), args) {
-            (TimerState::Start, Some(info), Some(args)) => {
-                self.format(state, format_args!("{}, {}, {}", self.name, info, args))
-            }
-            (TimerState::Start, Some(info), None) => self.format(state, format_args!("{}, {}", self.name, info)),
-            (TimerState::Start, None, Some(args)) => self.format(state, format_args!("{}, {}", self.name, args)),
-            (TimerState::Start, None, None) => self.format(state, format_args!("{}", self.name)),
-
-            (_, Some(info), Some(args)) => self.format(
-                state,
-                format_args!("{}, elapsed={:?}, {}, {}", self.name, self.elapsed(), info, args),
-            ),
-            (_, Some(info), None) => self.format(
-                state,
-                format_args!("{}, elapsed={:?}, {}", self.name, self.elapsed(), info),
-            ),
-            (_, None, Some(args)) => self.format(
-                state,
-                format_args!("{}, elapsed={:?}, {}", self.name, self.elapsed(), args),
-            ),
-            (_, None, None) => self.format(state, format_args!("{}, elapsed={:?}", self.name, self.elapsed())),
-        };
+        println!("{}", self.format(state, args));
     }
 
-    fn format(&self, target: TimerState, args: fmt::Arguments) {
-        let target = match target {
-            TimerState::Start => "Starting",
-            TimerState::Lap => "Lap",
-            TimerState::Finish => "Finished",
+    fn format(&self, status: TimerState, args: Option<fmt::Arguments>) -> String {
+        // Compute the indentation.
+        let indentation_amount = self.indent * 4;
+        let mut indentation = String::new();
+        for _ in 0..indentation_amount {
+            indentation.push_str(&PAD_CHAR);
+        }
+
+        // Construct the user message.
+        let user_message = match (self.extra_info.as_ref(), args) {
+            (Some(info), Some(args)) => format!("{}, {}, {}", self.name, info, args),
+            (Some(info), None) => format!("{}, {}", self.name, info),
+            (None, Some(args)) => format!("{}, {}", self.name, args),
+            (None, None) => format!("{}", self.name),
         };
 
-        println!(
-            "[{} {} L{}] {} {}",
-            self.module_path, self.file, self.line, target, args
-        );
+        // Construct the main message.
+        let message = format!("{}({})", self.status(status), user_message);
+
+        match status {
+            TimerState::Start => {
+                let metadata = format!(" [{} {} L{}]", self.module_path, self.file, self.line);
+
+                format!(" {}{:<12} {:.>75}", indentation, message, metadata,)
+            }
+            TimerState::Lap => {
+                let metadata = format!(" [{} {} L{}]", self.module_path, self.file, self.line);
+
+                format!(" {}{:<12} {:.>75}", indentation, message, metadata,)
+            }
+            TimerState::Finish => {
+                let elapsed = self.elapsed();
+
+                format!(" {}{:<12} {:.>75}", indentation, message, elapsed,)
+            }
+        }
+    }
+
+    /// Returns the state of the timer, with coloring.
+    fn status(&self, status: TimerState) -> ColoredString {
+        let status = match status {
+            TimerState::Start => "Start",
+            TimerState::Lap => "Lap",
+            TimerState::Finish => "Finish",
+        };
+
+        match self.indent % 5 {
+            0 => Colorize::green(status).bold(),
+            1 => Colorize::cyan(status).bold(),
+            2 => Colorize::yellow(status).bold(),
+            3 => Colorize::magenta(status).bold(),
+            4 => Colorize::red(status).bold(),
+            _ => Colorize::white(status).bold(),
+        }
     }
 }
 
