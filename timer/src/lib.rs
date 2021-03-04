@@ -18,11 +18,17 @@
 
 //! This crate implements a straightforward timer to conveniently time code blocks.
 
+#[cfg(test)]
+mod tests;
+
 use std::{
     fmt,
-    sync::atomic::{AtomicBool, Ordering},
+    sync::atomic::{AtomicBool, AtomicUsize, Ordering},
     time::Instant,
 };
+
+pub static NUM_INDENT: AtomicUsize = AtomicUsize::new(0);
+pub const PAD_CHAR: &str = "·";
 
 /// When this struct is dropped, it logs a message stating its name and how long
 /// the execution time was. Can be used to time functions or other critical areas.
@@ -37,6 +43,8 @@ pub struct Timer<'name> {
     line: u32,
     /// The name of the timer. Used in messages to identify it.
     name: &'name str,
+    /// The level of indentation for this timer context.
+    indent: usize,
     /// A flag used to suppress printing of the 'Finish' message in the drop() function
     /// It is set by the finish method.
     finished: AtomicBool,
@@ -47,8 +55,9 @@ pub struct Timer<'name> {
 }
 
 impl<'name> Timer<'name> {
-    /// Constructs a new `Timer` that prints only a 'TimerFinish' message.
+    /// Constructs a new `Timer` that prints a 'Start' and a 'Finish' message.
     /// This method is not usually called directly, use the `timer!` macro instead.
+    #[cfg(feature = "timer")]
     pub fn new(
         file: &'static str,
         module_path: &'static str,
@@ -56,41 +65,31 @@ impl<'name> Timer<'name> {
         name: &'name str,
         extra_info: Option<String>,
     ) -> Option<Self> {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "timer")] {
-                Some(Timer {
-                    start_time: Instant::now(),
-                    module_path,
-                    file,
-                    line,
-                    name,
-                    finished: AtomicBool::new(false),
-                    extra_info
-                })
-            } else {
-                None
-            }
-        }
+        let timer = Timer {
+            start_time: Instant::now(),
+            module_path,
+            file,
+            line,
+            name,
+            indent: NUM_INDENT.fetch_add(0, Ordering::Relaxed),
+            finished: AtomicBool::new(false),
+            extra_info,
+        };
+        timer.print(TimerState::Start, None);
+        Some(timer)
     }
 
-    /// Constructs a new `Timer` that prints a 'TimerStart' and a 'TimerFinish' message.
-    /// This method is not usually called directly, use the `stimer!` macro instead.
-    pub fn new_with_start_message(
+    /// Constructs a new `Timer` that prints a 'Start' and a 'Finish' message.
+    /// This method is not usually called directly, use the `timer!` macro instead.
+    #[cfg(not(feature = "timer"))]
+    pub fn new(
         file: &'static str,
         module_path: &'static str,
         line: u32,
         name: &'name str,
         extra_info: Option<String>,
     ) -> Option<Self> {
-        cfg_if::cfg_if! {
-            if #[cfg(feature = "timer")] {
-                let timer = Self::new(file, module_path, line, name, extra_info).unwrap();
-                timer.print(TimerTarget::Start, None);
-                Some(timer)
-            } else {
-                None
-            }
-        }
+        None
     }
 
     /// Returns how long the timer has been running for.
@@ -103,7 +102,7 @@ impl<'name> Timer<'name> {
     /// The message can include further information via a `format_args!` approach.
     /// This method is usually not called directly, it is easier to use the `lap!` macro.
     pub fn lap(&self, args: Option<fmt::Arguments>) {
-        self.print(TimerTarget::Lap, args);
+        self.print(TimerState::Lap, args);
     }
 
     /// Outputs a log message with a target of 'TimerFinish' and suppresses the normal message
@@ -113,40 +112,40 @@ impl<'name> Timer<'name> {
     pub fn finish(&self, args: Option<fmt::Arguments>) {
         if !self.finished.load(Ordering::SeqCst) {
             self.finished.store(true, Ordering::SeqCst);
-            self.print(TimerTarget::Finish, args);
+            self.print(TimerState::Finish, args);
         }
     }
 
-    fn print(&self, target: TimerTarget, args: Option<fmt::Arguments>) {
-        match (target, self.extra_info.as_ref(), args) {
-            (TimerTarget::Start, Some(info), Some(args)) => {
-                self.format(target, format_args!("{}, {}, {}", self.name, info, args))
+    fn print(&self, state: TimerState, args: Option<fmt::Arguments>) {
+        match (state, self.extra_info.as_ref(), args) {
+            (TimerState::Start, Some(info), Some(args)) => {
+                self.format(state, format_args!("{}, {}, {}", self.name, info, args))
             }
-            (TimerTarget::Start, Some(info), None) => self.format(target, format_args!("{}, {}", self.name, info)),
-            (TimerTarget::Start, None, Some(args)) => self.format(target, format_args!("{}, {}", self.name, args)),
-            (TimerTarget::Start, None, None) => self.format(target, format_args!("{}", self.name)),
+            (TimerState::Start, Some(info), None) => self.format(state, format_args!("{}, {}", self.name, info)),
+            (TimerState::Start, None, Some(args)) => self.format(state, format_args!("{}, {}", self.name, args)),
+            (TimerState::Start, None, None) => self.format(state, format_args!("{}", self.name)),
 
             (_, Some(info), Some(args)) => self.format(
-                target,
+                state,
                 format_args!("{}, elapsed={:?}, {}, {}", self.name, self.elapsed(), info, args),
             ),
             (_, Some(info), None) => self.format(
-                target,
+                state,
                 format_args!("{}, elapsed={:?}, {}", self.name, self.elapsed(), info),
             ),
             (_, None, Some(args)) => self.format(
-                target,
+                state,
                 format_args!("{}, elapsed={:?}, {}", self.name, self.elapsed(), args),
             ),
-            (_, None, None) => self.format(target, format_args!("{}, elapsed={:?}", self.name, self.elapsed())),
+            (_, None, None) => self.format(state, format_args!("{}, elapsed={:?}", self.name, self.elapsed())),
         };
     }
 
-    fn format(&self, target: TimerTarget, args: fmt::Arguments) {
+    fn format(&self, target: TimerState, args: fmt::Arguments) {
         let target = match target {
-            TimerTarget::Start => "Starting",
-            TimerTarget::Lap => "Lap",
-            TimerTarget::Finish => "Finished",
+            TimerState::Start => "Starting",
+            TimerState::Lap => "Lap",
+            TimerState::Finish => "Finished",
         };
 
         println!(
@@ -157,7 +156,7 @@ impl<'name> Timer<'name> {
 }
 
 impl<'a> Drop for Timer<'a> {
-    /// Drops the timer, outputting a log message with a target of `TimerFinish`
+    /// Drops the timer, outputting a log message with a target of `Finish`
     /// if the `finish` method has not yet been called.
     fn drop(&mut self) {
         self.finish(None);
@@ -165,7 +164,7 @@ impl<'a> Drop for Timer<'a> {
 }
 
 #[derive(Debug, Copy, Clone)]
-enum TimerTarget {
+enum TimerState {
     Start,
     Lap,
     Finish,
@@ -177,9 +176,8 @@ enum TimerTarget {
 /// Note that when specifying the log level you must use a semi-colon as a
 /// separator, this is to ensure disambiguous parsing of the macro arguments.
 ///
-/// ```norun
-///
-/// use logging_timer::{stime, time, stimer, timer};
+/// ```
+/// use aleo_std_timer::timer;
 ///
 /// let _tmr1 = timer!("FIND_FILES");
 /// let _tmr2 = timer!("FIND_FILES", "Found {} files", 42);
@@ -188,7 +186,7 @@ enum TimerTarget {
 macro_rules! timer {
     ($name:expr) => {
         {
-            $crate::Timer::new_with_start_message(
+            $crate::Timer::new(
                 file!(),
                 module_path!(),
                 line!(),
@@ -200,7 +198,7 @@ macro_rules! timer {
 
     ($name:expr, $format:tt) => {
         {
-            $crate::Timer::new_with_start_message(
+            $crate::Timer::new(
                 file!(),
                 module_path!(),
                 line!(),
@@ -212,7 +210,7 @@ macro_rules! timer {
 
     ($name:expr, $format:tt, $($arg:expr),*) => {
         {
-            $crate::Timer::new_with_start_message(
+            $crate::Timer::new(
                 file!(),
                 module_path!(),
                 line!(),
