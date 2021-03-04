@@ -97,7 +97,7 @@ impl<'name> Timer<'name> {
         self.start_time.elapsed()
     }
 
-    /// Outputs a log message with a target of 'TimerLap' showing the current elapsed time, but does not
+    /// Outputs a log message with a target of 'Lap' showing the current elapsed time, but does not
     /// stop the timer. This method can be called multiple times.
     /// The message can include further information via a `format_args!` approach.
     /// This method is usually not called directly, it is easier to use the `lap!` macro.
@@ -105,7 +105,7 @@ impl<'name> Timer<'name> {
         self.print(TimerState::Lap, args);
     }
 
-    /// Outputs a log message with a target of 'TimerFinish' and suppresses the normal message
+    /// Outputs a log message with a target of 'Finish' and suppresses the normal message
     /// that is output when the timer is dropped. The message can include further `format_args!`
     /// information. This method is normally called using the `finish!` macro. Calling
     /// `finish()` again will have no effect.
