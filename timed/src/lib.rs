@@ -142,5 +142,5 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
 
 #[cfg(not(feature = "timed"))]
 fn rewrite_stmts(_name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
-    stmts
+    stmts.clone()
 }
