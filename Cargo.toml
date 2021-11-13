@@ -11,10 +11,10 @@ edition = "2018"
 members = [ "storage", "time", "timed", "timer" ]
 
 [dependencies]
-aleo-std-storage = { path = "./storage", default-features = false }
-aleo-std-time = { path = "./time", default-features = false }
-aleo-std-timed = { path = "./timed", default-features = false }
-aleo-std-timer = { path = "./timer", default-features = false }
+aleo-std-storage = { path = "./storage", version = "0.1.0", default-features = false }
+aleo-std-time = { path = "./time", version = "0.1.0", default-features = false }
+aleo-std-timed = { path = "./timed", version = "0.1.0", default-features = false }
+aleo-std-timer = { path = "./timer", version = "0.1.0", default-features = false }
 
 [dev-dependencies.rusty-hook]
 version = "0.11.2"
