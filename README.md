@@ -4,6 +4,12 @@
 
 ## Usage Guide
 
+To use this crate to your repository, add the following to your `Cargo.toml`:
+```toml
+[dependencies.aleo-std]
+version = "0.1.0"
+```
+
 ### Storage
 
 ```rust
