@@ -1,15 +1,16 @@
 [package]
 name = "aleo-std"
 version = "0.1.0"
-authors = ["howardwu <howardwu@berkeley.edu>"]
+authors = [ "The Aleo Team <hello@aleo.org>" ]
 exclude = ["**/*.md"]
 license = "GPL-3.0"
 edition = "2018"
 
 [workspace]
-members = [ "time", "timed", "timer" ]
+members = [ "storage", "time", "timed", "timer" ]
 
 [dependencies]
+aleo-std-storage = { path = "./storage", default-features = false }
 aleo-std-time = { path = "./time", default-features = false }
 aleo-std-timed = { path = "./timed", default-features = false }
 aleo-std-timer = { path = "./timer", default-features = false }
