@@ -15,7 +15,7 @@
 // along with the aleo-std library. If not, see <https://www.gnu.org/licenses/>.
 
 use dirs::home_dir;
-use std::{path::PathBuf, str::FromStr};
+use std::path::PathBuf;
 
 /// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
