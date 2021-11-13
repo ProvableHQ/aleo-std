@@ -2,6 +2,7 @@
 name = "aleo-std-timed"
 version = "0.1.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
+description = "A profiler to conveniently time function executions"
 license = "GPL-3.0"
 edition = "2018"
 

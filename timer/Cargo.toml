@@ -2,6 +2,7 @@
 name = "aleo-std-timer"
 version = "0.1.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
+description = "A timer to conveniently time code blocks"
 license = "GPL-3.0"
 edition = "2018"
 

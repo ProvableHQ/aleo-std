@@ -2,6 +2,7 @@
 name = "aleo-std"
 version = "0.1.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
+description = "A standard library for Aleo repositories"
 exclude = ["**/*.md"]
 license = "GPL-3.0"
 edition = "2018"
