@@ -8,8 +8,7 @@ edition = "2018"
 
 [dependencies.colored]
 version = "2"
-optional = true
 
 [features]
 default = []
-timer = ["colored"]
+timer = []
