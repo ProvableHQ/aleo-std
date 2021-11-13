@@ -4,6 +4,16 @@
 
 ## Usage Guide
 
+### Storage
+
+```rust
+use aleo_std::prelude::*;
+
+fn foo() {
+    println!("{:?} exists: {:?}", aleo_dir(), aleo_dir().exists());
+}
+```
+
 ### Time
 
 ```rust

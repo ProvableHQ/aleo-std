@@ -17,6 +17,7 @@
 use dirs::home_dir;
 use std::{path::PathBuf, str::FromStr};
 
+/// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
 
 /// Returns the directory for accessing resources from Aleo storage.
