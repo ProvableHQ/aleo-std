@@ -20,7 +20,10 @@ use std::path::PathBuf;
 /// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
 
+///
 /// Returns the directory for accessing resources from Aleo storage.
+/// The expected directory path to be returned is `~/.aleo/`.
+///
 pub fn aleo_dir() -> PathBuf {
     // Locate the home directory as the starting point.
     // If called on a non-standard OS, use the repository directory.
@@ -33,6 +36,40 @@ pub fn aleo_dir() -> PathBuf {
     path
 }
 
+///
+/// Returns the directory for accessing the ledger from Aleo storage.
+///
+/// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
+/// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}`.
+///
+pub fn aleo_ledger_dir(network: u16, is_dev: bool) -> PathBuf {
+    // Retrieve the starting directory.
+    let mut path = match is_dev {
+        // In development mode, the ledger is stored in the repository root directory.
+        true => match std::env::current_dir() {
+            Ok(current_dir) => current_dir,
+            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+        },
+        // In production mode, the ledger is stored in the `~/.aleo/` directory.
+        false => aleo_dir(),
+    };
+
+    // Construct the path to the ledger in storage.
+    match is_dev {
+        // In development mode, the ledger files are stored in a hidden folder.
+        true => {
+            path.push(format!(".ledger-{}", network));
+            path
+        }
+        // In production mode, the ledger files are stored in a visible folder.
+        false => {
+            path.push("storage");
+            path.push(format!("ledger-{}", network));
+            path
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -40,5 +77,14 @@ mod tests {
     #[test]
     fn test_aleo_dir() {
         println!("{:?} exists: {:?}", aleo_dir(), aleo_dir().exists());
+    }
+
+    #[test]
+    fn test_aleo_ledger_dir() {
+        println!(
+            "{:?} exists: {:?}",
+            aleo_ledger_dir(2, false),
+            aleo_ledger_dir(2, false).exists()
+        );
     }
 }
