@@ -40,11 +40,11 @@ pub fn aleo_dir() -> PathBuf {
 /// Returns the directory for accessing the ledger from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}`.
+/// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
 ///
-pub fn aleo_ledger_dir(network: u16, is_dev: bool) -> PathBuf {
+pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
     // Retrieve the starting directory.
-    let mut path = match is_dev {
+    let mut path = match dev.is_some() {
         // In development mode, the ledger is stored in the repository root directory.
         true => match std::env::current_dir() {
             Ok(current_dir) => current_dir,
@@ -55,14 +55,14 @@ pub fn aleo_ledger_dir(network: u16, is_dev: bool) -> PathBuf {
     };
 
     // Construct the path to the ledger in storage.
-    match is_dev {
+    match dev {
         // In development mode, the ledger files are stored in a hidden folder.
-        true => {
-            path.push(format!(".ledger-{}", network));
+        Some(id) => {
+            path.push(format!(".ledger-{}-{}", network, id));
             path
         }
         // In production mode, the ledger files are stored in a visible folder.
-        false => {
+        None => {
             path.push("storage");
             path.push(format!("ledger-{}", network));
             path
@@ -83,8 +83,8 @@ mod tests {
     fn test_aleo_ledger_dir() {
         println!(
             "{:?} exists: {:?}",
-            aleo_ledger_dir(2, false),
-            aleo_ledger_dir(2, false).exists()
+            aleo_ledger_dir(2, None),
+            aleo_ledger_dir(2, None).exists()
         );
     }
 }
