@@ -37,7 +37,7 @@ pub fn aleo_dir() -> PathBuf {
 }
 
 ///
-/// Returns the directory for accessing the ledger from Aleo storage.
+/// Returns the directory for accessing the ledger files from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
 /// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
@@ -70,6 +70,40 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
     }
 }
 
+///
+/// Returns the directory for accessing the prover files from Aleo storage.
+///
+/// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
+/// In development mode, the expected directory path is `/path/to/repo/.prover-{network}-{id}`.
+///
+pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
+    // Retrieve the starting directory.
+    let mut path = match dev.is_some() {
+        // In development mode, the prover is stored in the repository root directory.
+        true => match std::env::current_dir() {
+            Ok(current_dir) => current_dir,
+            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+        },
+        // In production mode, the prover is stored in the `~/.aleo/` directory.
+        false => aleo_dir(),
+    };
+
+    // Construct the path to the prover in storage.
+    match dev {
+        // In development mode, the prover files are stored in a hidden folder.
+        Some(id) => {
+            path.push(format!(".prover-{}-{}", network, id));
+            path
+        }
+        // In production mode, the prover files are stored in a visible folder.
+        None => {
+            path.push("storage");
+            path.push(format!("prover-{}", network));
+            path
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -85,6 +119,15 @@ mod tests {
             "{:?} exists: {:?}",
             aleo_ledger_dir(2, None),
             aleo_ledger_dir(2, None).exists()
+        );
+    }
+
+    #[test]
+    fn test_aleo_prover_dir() {
+        println!(
+            "{:?} exists: {:?}",
+            aleo_prover_dir(2, None),
+            aleo_prover_dir(2, None).exists()
         );
     }
 }
