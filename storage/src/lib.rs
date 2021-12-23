@@ -74,6 +74,40 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>, dir: Option<&String>) -> 
 }
 
 ///
+/// Returns the directory for accessing the operator files from Aleo storage.
+///
+/// In production mode, the expected directory path is `~/.aleo/storage/operator-{network}`.
+/// In development mode, the expected directory path is `/path/to/repo/.operator-{network}-{id}`.
+///
+pub fn aleo_operator_dir(network: u16, dev: Option<u16>) -> PathBuf {
+    // Retrieve the starting directory.
+    let mut path = match dev.is_some() {
+        // In development mode, the operator is stored in the repository root directory.
+        true => match std::env::current_dir() {
+            Ok(current_dir) => current_dir,
+            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+        },
+        // In production mode, the operator is stored in the `~/.aleo/` directory.
+        false => aleo_dir(),
+    };
+
+    // Construct the path to the operator in storage.
+    match dev {
+        // In development mode, the operator files are stored in a hidden folder.
+        Some(id) => {
+            path.push(format!(".operator-{}-{}", network, id));
+            path
+        }
+        // In production mode, the operator files are stored in a visible folder.
+        None => {
+            path.push("storage");
+            path.push(format!("operator-{}", network));
+            path
+        }
+    }
+}
+
+///
 /// Returns the directory for accessing the prover files from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
@@ -122,6 +156,15 @@ mod tests {
             "{:?} exists: {:?}",
             aleo_ledger_dir(2, None),
             aleo_ledger_dir(2, None).exists()
+        );
+    }
+
+    #[test]
+    fn test_aleo_operator_dir() {
+        println!(
+            "{:?} exists: {:?}",
+            aleo_operator_dir(2, None),
+            aleo_operator_dir(2, None).exists()
         );
     }
 
