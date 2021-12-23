@@ -79,7 +79,7 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>, dir: Option<&String>) -> 
 /// In production mode, the expected directory path is `~/.aleo/storage/operator-{network}`.
 /// In development mode, the expected directory path is `/path/to/repo/.operator-{network}-{id}`.
 ///
-pub fn aleo_operator_dir(network: u16, dev: Option<u16>) -> PathBuf {
+pub fn aleo_operator_dir(network: u16, dev: Option<u16>, dir: Option<&String>) -> PathBuf {
     // Retrieve the starting directory.
     let mut path = match dev.is_some() {
         // In development mode, the operator is stored in the repository root directory.
@@ -88,7 +88,7 @@ pub fn aleo_operator_dir(network: u16, dev: Option<u16>) -> PathBuf {
             _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
         },
         // In production mode, the operator is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
+        false => aleo_dir(dir),
     };
 
     // Construct the path to the operator in storage.
