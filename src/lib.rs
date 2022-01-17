@@ -14,9 +14,11 @@
 // You should have received a copy of the GNU General Public License
 // along with the aleo-std library. If not, see <https://www.gnu.org/licenses/>.
 
+pub use aleo_std_cpu::get_cpu;
 pub use aleo_std_storage::{aleo_dir, aleo_ledger_dir, aleo_operator_dir, aleo_prover_dir};
 
 pub mod prelude {
+    pub use aleo_std_cpu::get_cpu;
     pub use aleo_std_storage::{aleo_dir, aleo_ledger_dir, aleo_operator_dir, aleo_prover_dir};
     pub use aleo_std_time::time;
     pub use aleo_std_timed::timed;

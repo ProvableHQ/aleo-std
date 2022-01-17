@@ -10,6 +10,15 @@ To use this crate to your repository, add the following to your `Cargo.toml`:
 version = "0.1.0"
 ```
 
+### CPU
+
+```rust
+fn foo() {
+    // Prints the CPU name.
+    println!("{:?}", aleo_std::get_cpu());
+}
+```
+
 ### Storage
 
 ```rust

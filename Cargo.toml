@@ -8,9 +8,10 @@ license = "GPL-3.0"
 edition = "2018"
 
 [workspace]
-members = [ "storage", "time", "timed", "timer" ]
+members = [ "cpu", "storage", "time", "timed", "timer" ]
 
 [dependencies]
+aleo-std-cpu = { path = "./cpu", version = "0.1.3", default-features = false }
 aleo-std-storage = { path = "./storage", version = "0.1.3", default-features = false }
 aleo-std-time = { path = "./time", version = "0.1.0", default-features = false }
 aleo-std-timed = { path = "./timed", version = "0.1.0", default-features = false }
