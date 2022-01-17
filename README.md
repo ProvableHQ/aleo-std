@@ -7,7 +7,7 @@
 To use this crate to your repository, add the following to your `Cargo.toml`:
 ```toml
 [dependencies.aleo-std]
-version = "0.1.7"
+version = "0.1.8"
 ```
 
 ### CPU
