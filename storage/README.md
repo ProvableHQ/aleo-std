@@ -1,5 +1,9 @@
 # aleo-std-storage
 
+[![Crates.io](https://img.shields.io/crates/v/aleo-std-storage.svg?color=neon)](https://crates.io/crates/aleo-std-storage)
+[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
+
 This crate uses `aleo-std-storage` to implement convenience methods for accessing resources in Aleo storage.
 
 ```rust

@@ -1,5 +1,9 @@
 # aleo-std-timer
 
+[![Crates.io](https://img.shields.io/crates/v/aleo-std-timer.svg?color=neon)](https://crates.io/crates/aleo-std-timer)
+[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
+
 This crate implements a straightforward timer to conveniently time code blocks.
 
 ```rust

@@ -1,5 +1,9 @@
 # aleo-std
 
+[![Crates.io](https://img.shields.io/crates/v/aleo-std.svg?color=neon)](https://crates.io/crates/aleo-std)
+[![Authors](https://img.shields.io/badge/authors-Aleo-orange.svg)](https://aleo.org)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](./LICENSE.md)
+
 `aleo-std` is a standard library of tools for use in `AleoHQ` repositories.
 
 ## Usage Guide
@@ -92,8 +96,3 @@ fn foo() -> u32 {
     x + y
 }
 ```
-
-## Roadmap
-
-- `log`
-- `std`
