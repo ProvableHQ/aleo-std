@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std"
-version = "0.1.9"
+version = "0.1.10"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A standard library for Aleo repositories"
 exclude = ["**/*.md"]
@@ -26,7 +26,7 @@ default = ["full"]
 
 # Supported feature modes
 
-full = ["profiler", "time", "timed", "timer"]
+full = ["time", "timed", "timer"]
 wasm = []
 
 # aleo-std feature configuration
