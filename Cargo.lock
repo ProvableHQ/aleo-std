@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "aleo-std"
-version = "0.1.8"
+version = "0.1.9"
 dependencies = [
  "aleo-std-cpu",
  "aleo-std-profiler",
@@ -21,7 +21,7 @@ version = "0.1.3"
 
 [[package]]
 name = "aleo-std-profiler"
-version = "0.1.3"
+version = "0.1.9"
 dependencies = [
  "colored",
 ]
