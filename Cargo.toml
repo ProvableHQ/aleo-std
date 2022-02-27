@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std"
-version = "0.1.10"
+version = "0.1.11"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A standard library for Aleo repositories"
 exclude = ["**/*.md"]
