@@ -94,7 +94,7 @@ pub mod inner {
                 end_info,
                 message,
                 final_time,
-                pad = 75_i32.saturating_sub(indent_amount)
+                pad = 75 - indent_amount
             );
         }};
     }
