@@ -49,20 +49,17 @@ pub fn timed(_attrs: TokenStream, item: TokenStream) -> TokenStream {
 
 #[cfg(feature = "timed")]
 fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
-    fn truncate_stmt(stmt: &Stmt, len: usize) -> String {
-        let short = format!("{}", quote::ToTokens::to_token_stream(stmt))
-            .chars()
-            .collect::<Vec<_>>();
-
-        let short = if short.len() > len {
-            let mut short = short[..(len - 3)].into_iter().collect::<String>();
-            short.push_str("...");
-            short
-        } else {
-            short.into_iter().collect::<String>()
-        };
-
-        short
+    /// Truncates the given statement to the specified number of characters.
+    fn truncate(stmt: &Stmt, len: usize) -> String {
+        // Convert the statement to a string.
+        let string = quote::ToTokens::to_token_stream(stmt).to_string().replace("\n", " ");
+        // If the statement is too long, truncate it.
+        match string.chars().count() > len {
+            // Truncate the statement and append "..." to the end.
+            true => string.chars().take(len).chain("...".chars()).collect::<String>(),
+            // Otherwise, return the statement as-is.
+            false => string,
+        }
     }
 
     let setup: Block = parse_quote! {{
@@ -73,19 +70,11 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
             prev_mark: Option<std::time::Duration>,
         }
 
-        impl Drop for Timed {
-            fn drop(&mut self) {
-                use std::fmt::Write;
-                writeln!(&mut self.buffer, "end: `{}` took {:?}", self.name, self.start.elapsed()).unwrap();
-                print!("{}", &self.buffer);
-            }
-        }
-
         impl Timed {
             fn new(name: &'static str) -> Self {
                 use std::fmt::Write;
                 let mut buffer = String::new();
-                writeln!(&mut buffer, "start: `{}`", name).unwrap();
+                writeln!(&mut buffer, "Start: `{}`", name).unwrap();
                 Timed {
                     start: std::time::Instant::now(),
                     name,
@@ -96,11 +85,37 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
 
             fn mark_elapsed(&mut self, short: &str) {
                 use std::fmt::Write;
+
                 let mut elapsed = self.start.elapsed();
                 if let Some(prev) = self.prev_mark.replace(elapsed) {
                     elapsed = elapsed - prev;
                 }
-                writeln!(&mut self.buffer, "  took {:?}: `{}`", elapsed, short).unwrap();
+
+                let elapsed = {
+                    let secs = elapsed.as_secs();
+                    let millis = elapsed.subsec_millis();
+                    let micros = elapsed.subsec_micros() % 1000;
+                    let nanos = elapsed.subsec_nanos() % 1000;
+                    if secs != 0 {
+                        format!("{}.{:0>3}s", secs, millis)
+                    } else if millis > 0 {
+                        format!("{}.{:0>3}ms", millis, micros)
+                    } else if micros > 0 {
+                        format!("{}.{:0>3}µs", micros, nanos)
+                    } else {
+                        format!("{}ns", elapsed.subsec_nanos())
+                    }
+                };
+
+                writeln!(&mut self.buffer, "    {:<55} {:->25}", short, elapsed).unwrap();
+            }
+        }
+
+        impl Drop for Timed {
+            fn drop(&mut self) {
+                use std::fmt::Write;
+                writeln!(&mut self.buffer, "End: `{}` took {:?}", self.name, self.start.elapsed()).unwrap();
+                print!("{}", &self.buffer);
             }
         }
 
@@ -108,12 +123,15 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
 
     }};
 
+    const LENGTH: usize = 45;
+
     let mut new_stmts = setup.stmts;
 
     let last = stmts.pop();
 
-    for stmt in stmts.drain(..) {
-        let short = truncate_stmt(&stmt, 40);
+    for (index, stmt) in stmts.drain(..).enumerate() {
+        let short = truncate(&stmt, LENGTH);
+        let short = format!("L{index}: {short}");
 
         let next_stmt = parse_quote!(timed.mark_elapsed(#short););
 
@@ -122,15 +140,13 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
     }
 
     if let Some(stmt) = last {
-        let short = truncate_stmt(&stmt, 40);
-        let new_stmt = parse_quote! {
-            let funtime_return_val = {
-                #stmt
-            };
-        };
+        let short = truncate(&stmt, LENGTH);
 
+        let new_stmt = parse_quote! {
+            let return_stmt = { #stmt };
+        };
         let next_stmt = parse_quote!(timed.mark_elapsed(#short););
-        let return_stmt = parse_quote!(return funtime_return_val;);
+        let return_stmt = parse_quote!(return return_stmt;);
 
         new_stmts.push(new_stmt);
         new_stmts.push(next_stmt);
