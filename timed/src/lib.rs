@@ -88,7 +88,7 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
 
                 let mut elapsed = self.start.elapsed();
                 if let Some(prev) = self.prev_mark.replace(elapsed) {
-                    elapsed = elapsed - prev;
+                    elapsed -= prev;
                 }
 
                 let elapsed = {

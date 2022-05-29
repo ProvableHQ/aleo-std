@@ -4,7 +4,7 @@ version = 3
 
 [[package]]
 name = "aleo-std"
-version = "0.1.13"
+version = "0.1.14"
 dependencies = [
  "aleo-std-cpu",
  "aleo-std-profiler",
@@ -44,7 +44,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-std-timed"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "proc-macro2 1.0.36",
  "quote 1.0.14",
