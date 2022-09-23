@@ -11,4 +11,5 @@ version = "2"
 optional = true
 
 [features]
+default = []
 profiler = [ "colored" ]

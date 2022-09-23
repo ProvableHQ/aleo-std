@@ -21,7 +21,9 @@
 #[cfg(test)]
 mod tests;
 
+#[cfg(feature = "timer")]
 use core::{fmt, time::Duration};
+#[cfg(feature = "timer")]
 use std::{
     cell::RefCell,
     rc::Rc,
@@ -29,13 +31,17 @@ use std::{
     time::Instant,
 };
 
+#[cfg(feature = "timer")]
 use colored::{ColoredString, Colorize};
 
+#[cfg(feature = "timer")]
 pub static NUM_INDENT: AtomicUsize = AtomicUsize::new(0);
+#[cfg(feature = "timer")]
 pub const PAD_CHAR: &str = " ";
 
 /// When this struct is dropped, it logs a message stating its name and how long
 /// the execution time was. Can be used to time functions or other critical areas.
+#[cfg(feature = "timer")]
 pub struct Timer<'name> {
     /// The instant, in UTC, that the timer was instantiated.
     start_time: Instant,
@@ -59,6 +65,12 @@ pub struct Timer<'name> {
     /// to the lifetimes associated with a `format_args!` invocation, this currently allocates
     /// if you use it.
     extra_info: Option<String>,
+}
+
+#[cfg(not(feature = "timer"))]
+#[derive(Default)]
+pub struct Timer<'name> {
+    _marker: std::marker::PhantomData<&'name ()>,
 }
 
 impl<'name> Timer<'name> {
@@ -91,20 +103,11 @@ impl<'name> Timer<'name> {
         Some(timer)
     }
 
-    /// Constructs a new `Timer` that prints a 'Start' and a 'Finish' message.
-    /// This method is not usually called directly, use the `timer!` macro instead.
     #[cfg(not(feature = "timer"))]
-    pub fn new(
-        file: &'static str,
-        module_path: &'static str,
-        line: u32,
-        name: &'name str,
-        extra_info: Option<String>,
-    ) -> Option<Self> {
-        None
-    }
+    pub fn noop(&self) {}
 
     /// Returns how long the timer has been running for.
+    #[cfg(feature = "timer")]
     pub fn elapsed(&self, elapsed: Duration) -> String {
         let secs = elapsed.as_secs();
         let millis = elapsed.subsec_millis();
@@ -122,6 +125,7 @@ impl<'name> Timer<'name> {
     }
 
     /// Returns how long the timer has been running for.
+    #[cfg(feature = "timer")]
     pub fn elapsed_colored(&self, elapsed: Duration) -> ColoredString {
         let secs = elapsed.as_secs();
         let millis = elapsed.subsec_millis();
@@ -142,6 +146,7 @@ impl<'name> Timer<'name> {
     /// stop the timer. This method can be called multiple times.
     /// The message can include further information via a `format_args!` approach.
     /// This method is usually not called directly, it is easier to use the `lap!` macro.
+    #[cfg(feature = "timer")]
     pub fn lap(&self, args: Option<fmt::Arguments>) {
         self.print(TimerState::Lap, args);
     }
@@ -150,6 +155,7 @@ impl<'name> Timer<'name> {
     /// that is output when the timer is dropped. The message can include further `format_args!`
     /// information. This method is normally called using the `finish!` macro. Calling
     /// `finish()` again will have no effect.
+    #[cfg(feature = "timer")]
     pub fn finish(&self, args: Option<fmt::Arguments>) {
         if !self.finished.load(Ordering::SeqCst) {
             // Decrement the indentation by 1.
@@ -159,10 +165,12 @@ impl<'name> Timer<'name> {
         }
     }
 
+    #[cfg(feature = "timer")]
     fn print(&self, state: TimerState, args: Option<fmt::Arguments>) {
         println!("{}", self.format(state, args));
     }
 
+    #[cfg(feature = "timer")]
     fn format(&self, status: TimerState, args: Option<fmt::Arguments>) -> String {
         // Construct the user message.
         let user_message = match (self.extra_info.as_ref(), args) {
@@ -221,6 +229,7 @@ impl<'name> Timer<'name> {
     }
 
     /// Returns the state of the timer, with coloring.
+    #[cfg(feature = "timer")]
     fn status(status: TimerState, indent: usize) -> ColoredString {
         let status = match status {
             TimerState::Start => "Start",
@@ -239,6 +248,7 @@ impl<'name> Timer<'name> {
     }
 }
 
+#[cfg(feature = "timer")]
 impl<'a> Drop for Timer<'a> {
     /// Drops the timer, outputting a log message with a target of `Finish`
     /// if the `finish` method has not yet been called.
@@ -247,6 +257,7 @@ impl<'a> Drop for Timer<'a> {
     }
 }
 
+#[cfg(feature = "timer")]
 #[derive(Debug, Copy, Clone)]
 enum TimerState {
     Start,
@@ -266,6 +277,7 @@ enum TimerState {
 /// let _tmr1 = timer!("FIND_FILES");
 /// let _tmr2 = timer!("FIND_FILES", "Found {} files", 42);
 /// ```
+#[cfg(feature = "timer")]
 #[macro_export]
 macro_rules! timer {
     ($name:expr) => {
@@ -307,6 +319,7 @@ macro_rules! timer {
 
 /// Makes an existing timer output an 'lap' message.
 /// Can be called multiple times.
+#[cfg(feature = "timer")]
 #[macro_export]
 macro_rules! lap {
     ($timer:expr) => ({
@@ -331,6 +344,7 @@ macro_rules! lap {
 /// Makes an existing timer output a 'finished' message and suppresses
 /// the normal drop message.
 /// Only the first call has any effect, subsequent calls will be ignored.
+#[cfg(feature = "timer")]
 #[macro_export]
 macro_rules! finish {
     ($timer:expr) => ({
@@ -350,4 +364,52 @@ macro_rules! finish {
             timer.finish(Some(format_args!($format, $($arg), *)))
         }
     })
+}
+
+#[cfg(not(feature = "timer"))]
+#[macro_export]
+macro_rules! timer {
+    ($name:expr) => {
+        $crate::Timer::default()
+    };
+
+    ($name:expr, $format:tt) => {
+        $crate::Timer::default()
+    };
+
+    ($name:expr, $format:tt, $($arg:expr),*) => {
+        $crate::Timer::default()
+    };
+}
+
+#[cfg(not(feature = "timer"))]
+#[macro_export]
+macro_rules! lap {
+    ($timer:expr) => {
+        $timer.noop()
+    };
+
+    ($timer:expr, $format:tt) => {
+        $timer.noop()
+    };
+
+    ($timer:expr, $format:tt, $($arg:expr),*) => {
+        $timer.noop()
+    };
+}
+
+#[cfg(not(feature = "timer"))]
+#[macro_export]
+macro_rules! finish {
+    ($timer:expr) => {
+        $timer.noop()
+    };
+
+    ($timer:expr, $format:tt) => {
+        $timer.noop()
+    };
+
+    ($timer:expr, $format:tt, $($arg:expr),*) => {
+        $timer.noop()
+    };
 }
