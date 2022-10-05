@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std-time"
-version = "0.1.0"
+version = "0.1.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A convenience attribute to time functions"
 license = "GPL-3.0"
