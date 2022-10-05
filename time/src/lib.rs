@@ -16,15 +16,20 @@
 
 // With credits to PhilipDaniels/logging_timer.
 
+#[cfg(feature = "time")]
 #[macro_use]
 extern crate quote;
+#[cfg(feature = "time")]
 #[macro_use]
 extern crate syn;
 extern crate proc_macro;
 
+#[cfg(feature = "time")]
 const DEFAULT_LEVEL: &str = "debug";
+#[cfg(feature = "time")]
 const DEFAULT_NAME_PATTERN: &str = "{}";
 
+#[cfg(feature = "time")]
 fn extract_literal(token_tree: &proc_macro::TokenTree) -> String {
     let s = match token_tree {
         proc_macro::TokenTree::Literal(literal) => literal.to_string(),
@@ -40,6 +45,7 @@ fn extract_literal(token_tree: &proc_macro::TokenTree) -> String {
 
 // We also allow 'Never' to mean disable timer instrumentation
 // altogether. Any casing is allowed.
+#[cfg(feature = "time")]
 fn get_log_level_and_name_pattern(metadata: proc_macro::TokenStream) -> (String, String) {
     // Grab everything into a vector and filter out any intervening punctuation
     // (commas come through as TokenTree::Punct(_)).
@@ -99,6 +105,7 @@ fn get_log_level_and_name_pattern(metadata: proc_macro::TokenStream) -> (String,
     }
 }
 
+#[cfg(feature = "time")]
 fn get_timer_name(name_pattern: &str, function_name: &str) -> String {
     let function_name_with_parenthesis = format!("{}()", function_name);
     let timer_name = name_pattern.replacen("{}", &function_name_with_parenthesis, 1);
