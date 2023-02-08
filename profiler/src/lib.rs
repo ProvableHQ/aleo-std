@@ -94,7 +94,7 @@ pub mod inner {
                 end_info,
                 message,
                 final_time,
-                pad = 75 - indent_amount
+                pad = 75usize.saturating_sub(indent_amount)
             );
         }};
     }
@@ -201,5 +201,17 @@ mod tests {
         let start = start_timer!(|| "Hello");
         add_to_trace!(|| "HelloMsg", || "Hello, I\nAm\nA\nMessage");
         end_timer!(start);
+    }
+
+    #[test]
+    fn print_nested_message() {
+        let mut starts = vec![];
+        for _ in 0..100 {
+            starts.push(start_timer!(|| "Hello"));
+        }
+        add_to_trace!(|| "HelloMsg", || "Hello, I\nAm\nA\nMessage");
+        for i in 0..100 {
+            end_timer!(starts[i]);
+        }
     }
 }
