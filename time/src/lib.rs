@@ -137,11 +137,11 @@ pub fn time(metadata: proc_macro::TokenStream, input: proc_macro::TokenStream) -
     if level != "never" {
         let input_fn: syn::ItemFn = parse_macro_input!(input as syn::ItemFn);
         let visibility = input_fn.vis;
-        let ident = input_fn.ident;
-        let inputs = input_fn.decl.inputs;
-        let output = input_fn.decl.output;
-        let generics = &input_fn.decl.generics;
-        let where_clause = &input_fn.decl.generics.where_clause;
+        let ident = input_fn.sig.ident;
+        let inputs = input_fn.sig.inputs;
+        let output = input_fn.sig.output;
+        let generics = &input_fn.sig.generics;
+        let where_clause = &input_fn.sig.generics.where_clause;
         let block = input_fn.block;
 
         let timer_name = get_timer_name(&name_pattern, &ident.to_string());
