@@ -60,16 +60,7 @@ fn base_path(dev: Option<u16>) -> PathBuf {
 /// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
 ///
 pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the ledger is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
-        // In production mode, the ledger is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    };
+    let mut path = base_path(dev);
 
     // Construct the path to the ledger in storage.
     match dev {
@@ -144,56 +135,13 @@ pub fn aleo_bft_worker_dir(network: u16, worker_id: u32, dev: Option<u16>) -> Pa
 }
 
 ///
-/// Returns the directory for accessing the operator files from Aleo storage.
-///
-/// In production mode, the expected directory path is `~/.aleo/storage/operator-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.operator-{network}-{id}`.
-///
-pub fn aleo_operator_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the operator is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
-        // In production mode, the operator is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    };
-
-    // Construct the path to the operator in storage.
-    match dev {
-        // In development mode, the operator files are stored in a hidden folder.
-        Some(id) => {
-            path.push(format!(".operator-{}-{}", network, id));
-            path
-        }
-        // In production mode, the operator files are stored in a visible folder.
-        None => {
-            path.push("storage");
-            path.push(format!("operator-{}", network));
-            path
-        }
-    }
-}
-
-///
 /// Returns the directory for accessing the prover files from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
 /// In development mode, the expected directory path is `/path/to/repo/.prover-{network}-{id}`.
 ///
 pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the prover is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
-        // In production mode, the prover is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    };
+    let mut path = base_path(dev);
 
     // Construct the path to the prover in storage.
     match dev {
@@ -224,17 +172,26 @@ mod tests {
     fn test_aleo_ledger_dir() {
         println!(
             "{:?} exists: {:?}",
-            aleo_ledger_dir(2, None),
-            aleo_ledger_dir(2, None).exists()
+            aleo_ledger_dir(3, None),
+            aleo_ledger_dir(3, None).exists()
         );
     }
 
     #[test]
-    fn test_aleo_operator_dir() {
+    fn test_aleo_bft_primary_dir() {
         println!(
             "{:?} exists: {:?}",
-            aleo_operator_dir(2, None),
-            aleo_operator_dir(2, None).exists()
+            aleo_bft_primary_dir(3, None),
+            aleo_bft_primary_dir(3, None).exists()
+        );
+    }
+
+    #[test]
+    fn test_aleo_bft_worker_dir() {
+        println!(
+            "{:?} exists: {:?}",
+            aleo_bft_worker_dir(3, 0, None),
+            aleo_bft_worker_dir(3, 0, None).exists()
         );
     }
 
@@ -242,8 +199,8 @@ mod tests {
     fn test_aleo_prover_dir() {
         println!(
             "{:?} exists: {:?}",
-            aleo_prover_dir(2, None),
-            aleo_prover_dir(2, None).exists()
+            aleo_prover_dir(3, None),
+            aleo_prover_dir(3, None).exists()
         );
     }
 }
