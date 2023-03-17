@@ -30,8 +30,7 @@ pub(crate) mod native_cpuid {
         pub edx: u32,
     }
 
-    #[allow(unreachable_code)]
-    #[allow(unused_variables)]
+    #[allow(unreachable_code, unused)]
     pub fn cpuid_count(a: u32, c: u32) -> CpuIdResult {
         #[cfg(all(any(target_arch = "x86", target_arch = "x86_64"), not(target_env = "sgx")))]
         {

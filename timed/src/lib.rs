@@ -16,11 +16,9 @@
 
 // With credits to kardeiz/funtime.
 
-extern crate proc_macro;
-
-use proc_macro::TokenStream;
+use proc_macro::{self, TokenStream};
 use quote::quote;
-use syn::*;
+use syn::{parse, ImplItemMethod, ItemFn, Stmt, TraitItemMethod};
 
 #[proc_macro_attribute]
 pub fn timed(_attrs: TokenStream, item: TokenStream) -> TokenStream {
@@ -52,7 +50,7 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
     /// Truncates the given statement to the specified number of characters.
     fn truncate(stmt: &Stmt, len: usize) -> String {
         // Convert the statement to a string.
-        let string = quote::ToTokens::to_token_stream(stmt).to_string().replace("\n", " ");
+        let string = quote::ToTokens::to_token_stream(stmt).to_string().replace('\n', " ");
         // If the statement is too long, truncate it.
         match string.chars().count() > len {
             // Truncate the statement and append "..." to the end.
@@ -62,7 +60,7 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
         }
     }
 
-    let setup: Block = parse_quote! {{
+    let setup: syn::Block = syn::parse_quote! {{
         struct Timed {
             start: std::time::Instant,
             name: &'static str,
@@ -133,7 +131,7 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
         let short = truncate(&stmt, LENGTH);
         let short = format!("L{index}: {short}");
 
-        let next_stmt = parse_quote!(timed.mark_elapsed(#short););
+        let next_stmt = syn::parse_quote!(timed.mark_elapsed(#short););
 
         new_stmts.push(stmt);
         new_stmts.push(next_stmt);
@@ -142,11 +140,11 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
     if let Some(stmt) = last {
         let short = truncate(&stmt, LENGTH);
 
-        let new_stmt = parse_quote! {
+        let new_stmt = syn::parse_quote! {
             let return_stmt = { #stmt };
         };
-        let next_stmt = parse_quote!(timed.mark_elapsed(#short););
-        let return_stmt = parse_quote!(return return_stmt;);
+        let next_stmt = syn::parse_quote!(timed.mark_elapsed(#short););
+        let return_stmt = syn::parse_quote!(return return_stmt;);
 
         new_stmts.push(new_stmt);
         new_stmts.push(next_stmt);
@@ -158,5 +156,5 @@ fn rewrite_stmts(name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
 
 #[cfg(not(feature = "timed"))]
 fn rewrite_stmts(_name: String, stmts: &mut Vec<Stmt>) -> Vec<Stmt> {
-    stmts.clone()
+    stmts.to_owned()
 }

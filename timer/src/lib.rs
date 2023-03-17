@@ -177,7 +177,7 @@ impl<'name> Timer<'name> {
             (Some(info), Some(args)) => format!("{}, {}, {}", self.name, info, args),
             (Some(info), None) => format!("{}, {}", self.name, info),
             (None, Some(args)) => format!("{}, {}", self.name, args),
-            (None, None) => format!("{}", self.name),
+            (None, None) => self.name.to_string(),
         };
 
         // Construct the main message.
@@ -187,7 +187,7 @@ impl<'name> Timer<'name> {
                 let indentation_amount = self.indent * 4;
                 let mut indentation = String::new();
                 for _ in 0..indentation_amount {
-                    indentation.push_str(&PAD_CHAR);
+                    indentation.push_str(PAD_CHAR);
                 }
 
                 let message = format!("{} ({})", Self::status(status, self.indent), user_message);
@@ -201,7 +201,7 @@ impl<'name> Timer<'name> {
                 let indentation_amount = (self.indent + 1) * 4;
                 let mut indentation = String::new();
                 for _ in 0..indentation_amount {
-                    indentation.push_str(&PAD_CHAR);
+                    indentation.push_str(PAD_CHAR);
                 }
 
                 let message = format!("{} ({})", Self::status(status, self.indent + 1), user_message);
@@ -217,7 +217,7 @@ impl<'name> Timer<'name> {
                 let indentation_amount = self.indent * 4;
                 let mut indentation = String::new();
                 for _ in 0..indentation_amount {
-                    indentation.push_str(&PAD_CHAR);
+                    indentation.push_str(PAD_CHAR);
                 }
 
                 let message = format!("{} ({})", Self::status(status, self.indent), user_message);

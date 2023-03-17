@@ -17,12 +17,7 @@
 // With credits to PhilipDaniels/logging_timer.
 
 #[cfg(feature = "time")]
-#[macro_use]
-extern crate quote;
-#[cfg(feature = "time")]
-#[macro_use]
-extern crate syn;
-extern crate proc_macro;
+use quote::quote;
 
 #[cfg(feature = "time")]
 const DEFAULT_LEVEL: &str = "debug";
@@ -51,10 +46,7 @@ fn get_log_level_and_name_pattern(metadata: proc_macro::TokenStream) -> (String,
     // (commas come through as TokenTree::Punct(_)).
     let macro_args: Vec<proc_macro::TokenTree> = metadata
         .into_iter()
-        .filter(|token| match token {
-            proc_macro::TokenTree::Literal(_) => true,
-            _ => false,
-        })
+        .filter(|token| matches!(token, proc_macro::TokenTree::Literal(_)))
         .collect();
 
     if macro_args.is_empty() {
@@ -83,7 +75,7 @@ fn get_log_level_and_name_pattern(metadata: proc_macro::TokenStream) -> (String,
                 // It may be a pattern with "{}", or it may just be a string.
                 // In any case, consider it to be the pattern and return it
                 // n.b. the original, not the lowered version.
-                return (DEFAULT_LEVEL.to_string(), first_arg.to_string());
+                return (DEFAULT_LEVEL.to_string(), first_arg);
             }
         }
     }
@@ -97,7 +89,7 @@ fn get_log_level_and_name_pattern(metadata: proc_macro::TokenStream) -> (String,
                 second_arg += DEFAULT_NAME_PATTERN;
             }
 
-            return (first_arg_lower, second_arg.to_string());
+            (first_arg_lower, second_arg.to_string())
         }
         _ => {
             panic!("Invalid first argument. Specify the log level as the first argument and the pattern as the second.")
@@ -108,8 +100,7 @@ fn get_log_level_and_name_pattern(metadata: proc_macro::TokenStream) -> (String,
 #[cfg(feature = "time")]
 fn get_timer_name(name_pattern: &str, function_name: &str) -> String {
     let function_name_with_parenthesis = format!("{}()", function_name);
-    let timer_name = name_pattern.replacen("{}", &function_name_with_parenthesis, 1);
-    timer_name
+    name_pattern.replacen("{}", &function_name_with_parenthesis, 1)
 }
 
 /// Instruments the function with an `timer!`, which logs two messages, one at the start
@@ -135,7 +126,7 @@ pub fn time(metadata: proc_macro::TokenStream, input: proc_macro::TokenStream) -
     let (level, name_pattern) = get_log_level_and_name_pattern(metadata);
 
     if level != "never" {
-        let input_fn: syn::ItemFn = parse_macro_input!(input as syn::ItemFn);
+        let input_fn: syn::ItemFn = syn::parse_macro_input!(input as syn::ItemFn);
         let visibility = input_fn.vis;
         let ident = input_fn.sig.ident;
         let inputs = input_fn.sig.inputs;
@@ -154,12 +145,12 @@ pub fn time(metadata: proc_macro::TokenStream, input: proc_macro::TokenStream) -
         ))
         .into()
     } else {
-        proc_macro::TokenStream::from(input).into()
+        input
     }
 }
 
 #[cfg(not(feature = "time"))]
 #[proc_macro_attribute]
 pub fn time(_metadata: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    proc_macro::TokenStream::from(input)
+    input
 }
