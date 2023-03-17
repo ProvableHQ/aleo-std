@@ -106,7 +106,7 @@ pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
 }
 
 ///
-/// Returns the directory for accessing the bft primary's files from Aleo storage.
+/// Returns the directory for accessing the bft workers' files from Aleo storage.
 ///
 /// In production mode, the expected directory path is:
 /// `~/.aleo/storage/bft-{network}/worker-{worker_id}`.
