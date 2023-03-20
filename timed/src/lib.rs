@@ -18,7 +18,7 @@
 
 use proc_macro::{self, TokenStream};
 use quote::quote;
-use syn::{parse, ImplItemMethod, ItemFn, Stmt, TraitItemMethod};
+use syn::{parse, ImplItemFn, ItemFn, Stmt, TraitItemFn};
 
 #[proc_macro_attribute]
 pub fn timed(_attrs: TokenStream, item: TokenStream) -> TokenStream {
@@ -28,7 +28,7 @@ pub fn timed(_attrs: TokenStream, item: TokenStream) -> TokenStream {
         return quote!(#fun).into();
     }
 
-    if let Ok(mut fun) = parse::<TraitItemMethod>(item.clone()) {
+    if let Ok(mut fun) = parse::<TraitItemFn>(item.clone()) {
         if let Some(block) = fun.default.as_mut() {
             let new_stmts = rewrite_stmts(fun.sig.ident.to_string(), &mut block.stmts);
             block.stmts = new_stmts;
@@ -36,7 +36,7 @@ pub fn timed(_attrs: TokenStream, item: TokenStream) -> TokenStream {
         }
     }
 
-    if let Ok(mut fun) = parse::<ImplItemMethod>(item) {
+    if let Ok(mut fun) = parse::<ImplItemFn>(item) {
         let new_stmts = rewrite_stmts(fun.sig.ident.to_string(), &mut fun.block.stmts);
         fun.block.stmts = new_stmts;
         return quote!(#fun).into();

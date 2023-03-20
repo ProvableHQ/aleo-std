@@ -7,4 +7,4 @@ license = "GPL-3.0"
 edition = "2018"
 
 [dependencies.dirs]
-version = "4.0"
+version = "5.0"
