@@ -15,7 +15,7 @@
 // along with the aleo-std library. If not, see <https://www.gnu.org/licenses/>.
 
 use dirs::home_dir;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 /// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
@@ -37,17 +37,26 @@ pub fn aleo_dir() -> PathBuf {
 }
 
 ///
-/// Returns the current directory when `dev` is `Some(..)` or the Aleo directory if `None`. In both
-/// cases, it falls back to the manifest directory.
+/// Returns the workspace path.
 ///
-fn base_path(dev: Option<u16>) -> PathBuf {
+pub fn workspace_dir() -> String {
+    let output = std::process::Command::new(env!("CARGO"))
+        .arg("locate-project")
+        .arg("--workspace")
+        .arg("--message-format=plain")
+        .output()
+        .unwrap()
+        .stdout;
+    let cargo_path = Path::new(std::str::from_utf8(&output).unwrap().trim());
+    cargo_path.parent().unwrap().display().to_string()
+}
+
+// Returns the base path for the storage files.
+fn base_storage_path(dev: Option<u16>) -> PathBuf {
     // Retrieve the starting directory.
     match dev.is_some() {
         // In development mode, the ledger is stored in the root directory of the repository.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
+        true => workspace_dir().into(),
         // In production mode, the ledger is stored in the `~/.aleo/` directory.
         false => aleo_dir(),
     }
@@ -60,7 +69,7 @@ fn base_path(dev: Option<u16>) -> PathBuf {
 /// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
 ///
 pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = base_path(dev);
+    let mut path = base_storage_path(dev);
 
     // Construct the path to the ledger in storage.
     match dev {
@@ -79,69 +88,13 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
 }
 
 ///
-/// Returns the directory for accessing the bft primary's files from Aleo storage.
-///
-/// In production mode, the expected directory path is: `~/.aleo/storage/bft-{network}/primary`.
-/// In development mode, the expected directory path is:
-/// `path/to/repo/.bft-{network}/primary-{id}`.
-///
-pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = base_path(dev);
-
-    // Construct the path to the ledger in storage.
-    match dev {
-        Some(id) => {
-            path.push(format!(".bft-{network}"));
-            path.push(format!("primary-{id}"));
-        }
-
-        None => {
-            path.push("storage");
-            path.push(format!("bft-{network}"));
-            path.push("primary");
-        }
-    }
-
-    path
-}
-
-///
-/// Returns the directory for accessing the bft workers' files from Aleo storage.
-///
-/// In production mode, the expected directory path is:
-/// `~/.aleo/storage/bft-{network}/worker-{worker_id}`.
-/// In development mode, the expected directory path is:
-/// `path/to/repo/.bft-{network}/worker-{primary_id}-{worker_id}`
-///
-pub fn aleo_bft_worker_dir(network: u16, worker_id: u32, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = base_path(dev);
-
-    // Construct the path to the ledger in storage.
-    match dev {
-        Some(primary_id) => {
-            path.push(format!(".bft-{network}"));
-            path.push(format!("worker-{primary_id}-{worker_id}"));
-        }
-
-        None => {
-            path.push("storage");
-            path.push(format!("bft-{network}"));
-            path.push(format!("worker-{worker_id}"));
-        }
-    }
-
-    path
-}
-
-///
 /// Returns the directory for accessing the prover files from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
 /// In development mode, the expected directory path is `/path/to/repo/.prover-{network}-{id}`.
 ///
 pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = base_path(dev);
+    let mut path = base_storage_path(dev);
 
     // Construct the path to the prover in storage.
     match dev {
@@ -157,6 +110,59 @@ pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
             path
         }
     }
+}
+
+///
+/// Returns the path for the primary-related BFT files.
+///
+/// In production mode, the expected directory path is `~/.aleo/storage/bft-{network}/primary`.
+/// In development mode, the expected directory path is `path/to/repo/.bft-storage-{network}/primary-{id}`.
+///
+pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
+    let mut path = base_storage_path(dev);
+
+    // Construct the path to the ledger in storage.
+    match dev {
+        Some(id) => {
+            path.push(format!(".bft-storage-{network}"));
+            path.push(format!("primary-{id}"));
+        }
+
+        None => {
+            path.push("storage");
+            path.push(format!("bft-{network}"));
+            path.push("primary");
+        }
+    }
+
+    path
+}
+
+///
+/// Returns the path for the worker-related BFT files.
+///
+/// In production mode, the expected directory path is `~/.aleo/storage/bft-{network}/worker-{worker_id}`.
+/// In development mode, the expected directory path is `path/to/repo/.bft-storage-{network}/worker-{primary_id}-{worker_id}`.
+///
+pub fn aleo_bft_worker_dir(network: u16, worker_id: u32, dev: Option<u16>) -> PathBuf {
+    // Retrieve the starting directory.
+    let mut path = base_storage_path(dev);
+
+    // Construct the path to the ledger in storage.
+    match dev {
+        Some(primary_id) => {
+            path.push(format!(".bft-storage-{network}"));
+            path.push(format!("worker-{primary_id}-{worker_id}"));
+        }
+
+        None => {
+            path.push("storage");
+            path.push(format!("bft-{network}"));
+            path.push(format!("worker-{worker_id}"));
+        }
+    }
+
+    path
 }
 
 #[cfg(test)]
