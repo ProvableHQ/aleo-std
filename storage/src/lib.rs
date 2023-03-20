@@ -70,7 +70,7 @@ pub fn workspace_dir() -> PathBuf {
 ///
 /// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
 /// opposed to the home directory, see [`aleo_dir`] for details.
-pub fn aleo_base_committee_path(dev: Option<u16>) -> PathBuf {
+pub fn aleo_base_committee_dir(dev: Option<u16>) -> PathBuf {
     let mut path = aleo_dir(dev);
     path.push("committee");
     path
@@ -87,7 +87,7 @@ pub fn aleo_base_committee_path(dev: Option<u16>) -> PathBuf {
 /// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
 /// opposed to the home directory, see [`aleo_dir`] for details.
 ///
-pub fn aleo_base_storage_path(dev: Option<u16>) -> PathBuf {
+pub fn aleo_base_storage_dir(dev: Option<u16>) -> PathBuf {
     let mut path = aleo_dir(dev);
     path.push("storage");
     path
@@ -105,7 +105,7 @@ pub fn aleo_base_storage_path(dev: Option<u16>) -> PathBuf {
 /// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = aleo_base_storage_path(dev);
+    let mut path = aleo_base_storage_dir(dev);
 
     // Construct the path to the ledger in storage.
     match dev {
@@ -134,7 +134,7 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
 /// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = aleo_base_storage_path(dev);
+    let mut path = aleo_base_storage_dir(dev);
 
     // Construct the path to the prover in storage.
     match dev {
@@ -162,7 +162,7 @@ pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
 /// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_bft_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = aleo_base_storage_path(dev);
+    let mut path = aleo_base_storage_dir(dev);
 
     // Construct the path to the ledger in storage.
     match dev {
