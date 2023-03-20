@@ -15,7 +15,7 @@
 // along with the aleo-std library. If not, see <https://www.gnu.org/licenses/>.
 
 use dirs::home_dir;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 /// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
@@ -39,7 +39,7 @@ pub fn aleo_dir() -> PathBuf {
 ///
 /// Returns the workspace path.
 ///
-pub fn workspace_dir() -> String {
+pub fn workspace_dir() -> PathBuf {
     let output = std::process::Command::new(env!("CARGO"))
         .arg("locate-project")
         .arg("--workspace")
@@ -47,12 +47,17 @@ pub fn workspace_dir() -> String {
         .output()
         .unwrap()
         .stdout;
-    let cargo_path = Path::new(std::str::from_utf8(&output).unwrap().trim());
-    cargo_path.parent().unwrap().display().to_string()
+
+    let mut path = PathBuf::from(std::str::from_utf8(&output).unwrap().trim());
+    path.pop();
+
+    path
 }
 
-// Returns the base path for the storage files.
-fn base_storage_path(dev: Option<u16>) -> PathBuf {
+///
+/// Returns the base path for the storage files.
+///
+pub fn base_storage_path(dev: Option<u16>) -> PathBuf {
     // Retrieve the starting directory.
     match dev.is_some() {
         // In development mode, the ledger is stored in the root directory of the repository.
