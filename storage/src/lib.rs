@@ -53,7 +53,7 @@ pub fn workspace_dir() -> PathBuf {
         .stdout;
 
     // Returns the location of the toml file for the workspace.
-    let mut path = PathBuf::from(std::str::from_utf8(&output).unwrap().trim());
+    let mut path = PathBuf::from(String::from_utf8(output).unwrap().trim());
     // Pop the toml file from the path to get the workspace dir.
     path.pop();
 
@@ -99,7 +99,7 @@ pub fn aleo_base_storage_path(dev: Option<u16>) -> PathBuf {
 /// The expected paths are:
 ///
 /// - Production: `~/.aleo/storage/ledger-{network}`.
-/// - Development: `../.aleo/storage/ledger-{network}-{id}`.
+/// - Development: `../.aleo/storage/ledger-{network}-{dev_id}`.
 ///
 /// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
 /// opposed to the home directory, see [`aleo_dir`] for details.
@@ -128,7 +128,7 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
 /// The expected paths are:
 ///
 /// - Production: `~/.aleo/storage/prover-{network}`.
-/// - Development: `../.aleo/storage/prover-{network}-{id}`.
+/// - Development: `../.aleo/storage/prover-{network}-{dev_id}`.
 ///
 /// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
 /// opposed to the home directory, see [`aleo_dir`] for details.
@@ -151,32 +151,47 @@ pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
     path
 }
 
+/// Returns the directory for accessing the BFT files from Aleo storage.
+///
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/storage/bft-{network}`.
+/// - Development: `../.aleo/storage/bft-{network}-{dev_id}`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
+///
+pub fn aleo_bft_dir(network: u16, dev: Option<u16>) -> PathBuf {
+    let mut path = aleo_base_storage_path(dev);
+
+    // Construct the path to the ledger in storage.
+    match dev {
+        Some(id) => {
+            path.push(format!("bft-{network}-{id}"));
+        }
+
+        None => {
+            path.push(format!("bft-{network}"));
+        }
+    }
+
+    path
+}
+
 ///
 /// Returns the path for the primary-related BFT files.
 ///
 /// The expected paths are:
 ///
 /// - Production: `~/.aleo/storage/bft-{network}/primary`.
-/// - Development: `../.aleo/storage/bft-{network}/primary-{id}`.
+/// - Development: `../.aleo/storage/bft-{network}-{dev_id}/primary`.
 ///
 /// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
 /// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = aleo_base_storage_path(dev);
-    path.push(format!("bft-{network}"));
-
-    // Construct the path to the ledger in storage.
-    match dev {
-        Some(id) => {
-            path.push(format!("primary-{id}"));
-        }
-
-        None => {
-            path.push("primary");
-        }
-    }
-
+    let mut path = aleo_bft_dir(network, dev);
+    path.push("primary");
     path
 }
 
@@ -186,27 +201,14 @@ pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
 /// The expected paths are:
 ///
 /// - Production: `~/.aleo/storage/bft-{network}/worker-{worker-id}`.
-/// - Development: `../.aleo/storage/bft-{network}/worker-{primary_id}-{worker_id}`.
+/// - Development: `../.aleo/storage/bft-{network}-{dev_id}/worker-{worker_id}`.
 ///
 /// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
 /// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_bft_worker_dir(network: u16, worker_id: u32, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = aleo_base_storage_path(dev);
-    path.push(format!("bft-{network}"));
-
-    // Construct the path to the ledger in storage.
-    match dev {
-        Some(primary_id) => {
-            path.push(format!("worker-{primary_id}-{worker_id}"));
-        }
-
-        None => {
-            path.push(format!("worker-{worker_id}"));
-        }
-    }
-
+    let mut path = aleo_bft_dir(network, dev);
+    path.push(format!("worker-{worker_id}"));
     path
 }
 
