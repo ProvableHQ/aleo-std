@@ -24,13 +24,17 @@ const ALEO_DIRECTORY: &str = ".aleo";
 /// Returns the directory for accessing resources from Aleo storage.
 /// The expected directory path to be returned is `~/.aleo/`.
 ///
-pub fn aleo_dir() -> PathBuf {
+/// Falls back to the workspace directory if the home directory doesn't exist.
+///
+pub fn aleo_dir(dev: Option<u16>) -> PathBuf {
     // Locate the home directory as the starting point.
     // If called on a non-standard OS, use the repository directory.
-    let mut path = match home_dir() {
-        Some(home) => home,
-        None => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+    let mut path = if dev.is_some() || home_dir().is_none() {
+        workspace_dir()
+    } else {
+        home_dir().expect("home directory should be present")
     };
+
     // Append the Aleo directory to the path.
     path.push(ALEO_DIRECTORY);
     path
@@ -48,30 +52,39 @@ pub fn workspace_dir() -> PathBuf {
         .unwrap()
         .stdout;
 
+    // Returns the location of the toml file for the workspace.
     let mut path = PathBuf::from(std::str::from_utf8(&output).unwrap().trim());
+    // Pop the toml file from the path to get the workspace dir.
     path.pop();
 
     path
 }
 
 ///
+/// Returns the base path for the BFT committee files.
+///
+/// The expected directory path is `../.aleo/committee` either in the home directory (prod) or the workspace directory (dev).
+pub fn base_committee_path(dev: Option<u16>) -> PathBuf {
+    let mut path = aleo_dir(dev);
+    path.push("committee");
+    path
+}
+
+///
 /// Returns the base path for the storage files.
 ///
+/// The expected directory path is `../.aleo/storage` either in the home directory (prod) or the workspace directory (dev).
 pub fn base_storage_path(dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    match dev.is_some() {
-        // In development mode, the ledger is stored in the root directory of the repository.
-        true => workspace_dir().into(),
-        // In production mode, the ledger is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    }
+    let mut path = aleo_dir(dev);
+    path.push("storage");
+    path
 }
 
 ///
 /// Returns the directory for accessing the ledger files from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
+/// In development mode, the expected directory path is `/path/to/repo/.aleo/storage/ledger-{network}-{id}`.
 ///
 pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
     let mut path = base_storage_path(dev);
@@ -80,23 +93,22 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
     match dev {
         // In development mode, the ledger files are stored in a hidden folder.
         Some(id) => {
-            path.push(format!(".ledger-{}-{}", network, id));
-            path
+            path.push(format!("ledger-{}-{}", network, id));
         }
         // In production mode, the ledger files are stored in a visible folder.
         None => {
-            path.push("storage");
             path.push(format!("ledger-{}", network));
-            path
         }
     }
+
+    path
 }
 
 ///
 /// Returns the directory for accessing the prover files from Aleo storage.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.prover-{network}-{id}`.
+/// In development mode, the expected directory path is `/path/to/repo/.aleo/storage/prover-{network}-{id}`.
 ///
 pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
     let mut path = base_storage_path(dev);
@@ -105,37 +117,34 @@ pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
     match dev {
         // In development mode, the prover files are stored in a hidden folder.
         Some(id) => {
-            path.push(format!(".prover-{}-{}", network, id));
-            path
+            path.push(format!("prover-{}-{}", network, id));
         }
         // In production mode, the prover files are stored in a visible folder.
         None => {
-            path.push("storage");
             path.push(format!("prover-{}", network));
-            path
         }
     }
+
+    path
 }
 
 ///
 /// Returns the path for the primary-related BFT files.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/bft-{network}/primary`.
-/// In development mode, the expected directory path is `path/to/repo/.bft-storage-{network}/primary-{id}`.
+/// In development mode, the expected directory path is `path/to/repo/.aleo/storage/bft-{network}/primary-{id}`.
 ///
 pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
     let mut path = base_storage_path(dev);
+    path.push(format!("bft-{network}"));
 
     // Construct the path to the ledger in storage.
     match dev {
         Some(id) => {
-            path.push(format!(".bft-storage-{network}"));
             path.push(format!("primary-{id}"));
         }
 
         None => {
-            path.push("storage");
-            path.push(format!("bft-{network}"));
             path.push("primary");
         }
     }
@@ -147,22 +156,20 @@ pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
 /// Returns the path for the worker-related BFT files.
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/bft-{network}/worker-{worker_id}`.
-/// In development mode, the expected directory path is `path/to/repo/.bft-storage-{network}/worker-{primary_id}-{worker_id}`.
+/// In development mode, the expected directory path is `path/to/repo/.aleo/storage/bft-{network}/worker-{primary_id}-{worker_id}`.
 ///
 pub fn aleo_bft_worker_dir(network: u16, worker_id: u32, dev: Option<u16>) -> PathBuf {
     // Retrieve the starting directory.
     let mut path = base_storage_path(dev);
+    path.push(format!("bft-{network}"));
 
     // Construct the path to the ledger in storage.
     match dev {
         Some(primary_id) => {
-            path.push(format!(".bft-storage-{network}"));
             path.push(format!("worker-{primary_id}-{worker_id}"));
         }
 
         None => {
-            path.push("storage");
-            path.push(format!("bft-{network}"));
             path.push(format!("worker-{worker_id}"));
         }
     }
@@ -176,7 +183,7 @@ mod tests {
 
     #[test]
     fn test_aleo_dir() {
-        println!("{:?} exists: {:?}", aleo_dir(), aleo_dir().exists());
+        println!("{:?} exists: {:?}", aleo_dir(None), aleo_dir(None).exists());
     }
 
     #[test]
