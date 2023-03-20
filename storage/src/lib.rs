@@ -22,9 +22,9 @@ const ALEO_DIRECTORY: &str = ".aleo";
 
 ///
 /// Returns the directory for accessing resources from Aleo storage.
-/// The expected directory path to be returned is `~/.aleo/`.
 ///
-/// Falls back to the workspace directory if the home directory doesn't exist.
+/// The expected directory path to be returned is `~/.aleo/`. Falls back to the workspace directory
+/// if the home directory doesn't exist or when in development mode.
 ///
 pub fn aleo_dir(dev: Option<u16>) -> PathBuf {
     // Locate the home directory as the starting point.
@@ -63,8 +63,14 @@ pub fn workspace_dir() -> PathBuf {
 ///
 /// Returns the base path for the BFT committee files.
 ///
-/// The expected directory path is `../.aleo/committee` either in the home directory (prod) or the workspace directory (dev).
-pub fn base_committee_path(dev: Option<u16>) -> PathBuf {
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/committee`.
+/// - Development: `../.aleo/committee`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
+pub fn aleo_base_committee_path(dev: Option<u16>) -> PathBuf {
     let mut path = aleo_dir(dev);
     path.push("committee");
     path
@@ -73,8 +79,15 @@ pub fn base_committee_path(dev: Option<u16>) -> PathBuf {
 ///
 /// Returns the base path for the storage files.
 ///
-/// The expected directory path is `../.aleo/storage` either in the home directory (prod) or the workspace directory (dev).
-pub fn base_storage_path(dev: Option<u16>) -> PathBuf {
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/storage`.
+/// - Development: `../.aleo/storage`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
+///
+pub fn aleo_base_storage_path(dev: Option<u16>) -> PathBuf {
     let mut path = aleo_dir(dev);
     path.push("storage");
     path
@@ -83,11 +96,16 @@ pub fn base_storage_path(dev: Option<u16>) -> PathBuf {
 ///
 /// Returns the directory for accessing the ledger files from Aleo storage.
 ///
-/// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.aleo/storage/ledger-{network}-{id}`.
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/storage/ledger-{network}`.
+/// - Development: `../.aleo/storage/ledger-{network}-{id}`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = base_storage_path(dev);
+    let mut path = aleo_base_storage_path(dev);
 
     // Construct the path to the ledger in storage.
     match dev {
@@ -107,11 +125,16 @@ pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
 ///
 /// Returns the directory for accessing the prover files from Aleo storage.
 ///
-/// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.aleo/storage/prover-{network}-{id}`.
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/storage/prover-{network}`.
+/// - Development: `../.aleo/storage/prover-{network}-{id}`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = base_storage_path(dev);
+    let mut path = aleo_base_storage_path(dev);
 
     // Construct the path to the prover in storage.
     match dev {
@@ -131,11 +154,16 @@ pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
 ///
 /// Returns the path for the primary-related BFT files.
 ///
-/// In production mode, the expected directory path is `~/.aleo/storage/bft-{network}/primary`.
-/// In development mode, the expected directory path is `path/to/repo/.aleo/storage/bft-{network}/primary-{id}`.
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/storage/bft-{network}/primary`.
+/// - Development: `../.aleo/storage/bft-{network}/primary-{id}`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    let mut path = base_storage_path(dev);
+    let mut path = aleo_base_storage_path(dev);
     path.push(format!("bft-{network}"));
 
     // Construct the path to the ledger in storage.
@@ -155,12 +183,17 @@ pub fn aleo_bft_primary_dir(network: u16, dev: Option<u16>) -> PathBuf {
 ///
 /// Returns the path for the worker-related BFT files.
 ///
-/// In production mode, the expected directory path is `~/.aleo/storage/bft-{network}/worker-{worker_id}`.
-/// In development mode, the expected directory path is `path/to/repo/.aleo/storage/bft-{network}/worker-{primary_id}-{worker_id}`.
+/// The expected paths are:
+///
+/// - Production: `~/.aleo/storage/bft-{network}/worker-{worker-id}`.
+/// - Development: `../.aleo/storage/bft-{network}/worker-{primary_id}-{worker_id}`.
+///
+/// Note: in development mode, the `.aleo` directory will be created in the cargo workspace as
+/// opposed to the home directory, see [`aleo_dir`] for details.
 ///
 pub fn aleo_bft_worker_dir(network: u16, worker_id: u32, dev: Option<u16>) -> PathBuf {
     // Retrieve the starting directory.
-    let mut path = base_storage_path(dev);
+    let mut path = aleo_base_storage_path(dev);
     path.push(format!("bft-{network}"));
 
     // Construct the path to the ledger in storage.
