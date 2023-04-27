@@ -31,8 +31,9 @@ pub(crate) mod native_cpuid {
     }
 
     #[allow(unreachable_code)]
+    #[allow(unused_variables)]
     pub fn cpuid_count(a: u32, c: u32) -> CpuIdResult {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        #[cfg(all(target_arch = "x86", target_arch = "x86_64", not(target_env = "sgx")))]
         {
             #[cfg(all(target_arch = "x86", not(target_env = "sgx"), target_feature = "sse"))]
             use core::arch::x86 as arch;
