@@ -42,20 +42,10 @@ pub(crate) mod native_cpuid {
 
             // Safety: CPUID is supported on all x86_64 CPUs and all x86 CPUs with SSE, but not by SGX.
             let result = unsafe { arch::__cpuid_count(a, c) };
-            return CpuIdResult {
-                eax: result.eax,
-                ebx: result.ebx,
-                ecx: result.ecx,
-                edx: result.edx,
-            };
+            return CpuIdResult { eax: result.eax, ebx: result.ebx, ecx: result.ecx, edx: result.edx };
         }
 
-        CpuIdResult {
-            eax: 22,
-            ebx: 1970169159,
-            ecx: 1818588270,
-            edx: 1231384169,
-        }
+        CpuIdResult { eax: 22, ebx: 1970169159, ecx: 1818588270, edx: 1231384169 }
     }
 }
 
@@ -109,11 +99,7 @@ pub fn get_cpu() -> Cpu {
 
     match is_leaf_supported {
         true => {
-            let vendor = VendorInfo {
-                ebx: vendor_leaf.ebx,
-                ecx: vendor_leaf.ecx,
-                edx: vendor_leaf.edx,
-            };
+            let vendor = VendorInfo { ebx: vendor_leaf.ebx, ecx: vendor_leaf.ecx, edx: vendor_leaf.edx };
 
             match vendor.as_str() {
                 "AuthenticAMD" => Cpu::AMD,

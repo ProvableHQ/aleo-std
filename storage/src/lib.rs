@@ -149,28 +149,16 @@ mod tests {
 
     #[test]
     fn test_aleo_ledger_dir() {
-        println!(
-            "{:?} exists: {:?}",
-            aleo_ledger_dir(2, None),
-            aleo_ledger_dir(2, None).exists()
-        );
+        println!("{:?} exists: {:?}", aleo_ledger_dir(2, None), aleo_ledger_dir(2, None).exists());
     }
 
     #[test]
     fn test_aleo_operator_dir() {
-        println!(
-            "{:?} exists: {:?}",
-            aleo_operator_dir(2, None),
-            aleo_operator_dir(2, None).exists()
-        );
+        println!("{:?} exists: {:?}", aleo_operator_dir(2, None), aleo_operator_dir(2, None).exists());
     }
 
     #[test]
     fn test_aleo_prover_dir() {
-        println!(
-            "{:?} exists: {:?}",
-            aleo_prover_dir(2, None),
-            aleo_prover_dir(2, None).exists()
-        );
+        println!("{:?} exists: {:?}", aleo_prover_dir(2, None), aleo_prover_dir(2, None).exists());
     }
 }

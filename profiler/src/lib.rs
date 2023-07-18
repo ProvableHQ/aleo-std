@@ -45,10 +45,7 @@ pub mod inner {
 
             println!("{}{:8} {}", indent, start_info, msg);
             NUM_INDENT.fetch_add(1, Ordering::Relaxed);
-            $crate::TimerInfo {
-                msg: msg.to_string(),
-                time: Instant::now(),
-            }
+            $crate::TimerInfo { msg: msg.to_string(), time: Instant::now() }
         }};
     }
 
@@ -83,9 +80,7 @@ pub mod inner {
             let message = format!("{} {}", $time.msg, $msg());
 
             NUM_INDENT
-                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |x| {
-                    if x > 0 { Some(x - 1) } else { Some(x) }
-                })
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |x| if x > 0 { Some(x - 1) } else { Some(x) })
                 .unwrap();
             let indent_amount = NUM_INDENT.load(Ordering::Relaxed).saturating_mul(2usize);
             let indent = compute_indent(indent_amount);
