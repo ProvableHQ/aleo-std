@@ -40,7 +40,7 @@ pub mod inner {
 
             let msg = $msg();
             let start_info = "Start:".yellow().bold();
-            let indent_amount = 2 * NUM_INDENT.fetch_add(0, Ordering::Relaxed);
+            let indent_amount = NUM_INDENT.load(Ordering::Relaxed).saturating_mul(2usize);
             let indent = compute_indent(indent_amount);
 
             println!("{}{:8} {}", indent, start_info, msg);
@@ -82,8 +82,12 @@ pub mod inner {
             let end_info = "End:".green().bold();
             let message = format!("{} {}", $time.msg, $msg());
 
-            NUM_INDENT.fetch_sub(1, Ordering::Relaxed);
-            let indent_amount = 2 * NUM_INDENT.fetch_add(0, Ordering::Relaxed);
+            NUM_INDENT
+                .fetch_update(Ordering::Relaxed, Ordering::Relaxed, |x| {
+                    if x > 0 { Some(x - 1) } else { Some(x) }
+                })
+                .unwrap();
+            let indent_amount = NUM_INDENT.load(Ordering::Relaxed).saturating_mul(2usize);
             let indent = compute_indent(indent_amount);
 
             // Todo: Recursively ensure that *entire* string is of appropriate
