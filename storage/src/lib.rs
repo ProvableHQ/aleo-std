@@ -15,6 +15,7 @@
 // along with the aleo-std library. If not, see <https://www.gnu.org/licenses/>.
 
 use dirs::home_dir;
+use either::Either;
 use std::path::PathBuf;
 
 /// The directory name for Aleo-related resources.
@@ -42,32 +43,27 @@ pub fn aleo_dir() -> PathBuf {
 /// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
 /// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
 ///
-pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the ledger is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
+pub fn aleo_ledger_dir(network: u16, dev_or_custom_path: Option<Either<u16, PathBuf>>) -> PathBuf {
+    // Construct the path to the ledger in storage.
+    let mut path = match dev_or_custom_path {
+        // In development mode, the ledger files are stored in a hidden folder.
+        Some(Either::Left(id)) => {
+            let mut path = match std::env::current_dir() {
+                Ok(current_dir) => current_dir,
+                _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+            };
+            path.push(format!(".ledger-{}-{}", network, id));
+            return path;
+        }
+        // When a custom path is provided, use that one.
+        Some(Either::Right(custom_path)) => custom_path,
         // In production mode, the ledger is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
+        None => aleo_dir(),
     };
 
-    // Construct the path to the ledger in storage.
-    match dev {
-        // In development mode, the ledger files are stored in a hidden folder.
-        Some(id) => {
-            path.push(format!(".ledger-{}-{}", network, id));
-            path
-        }
-        // In production mode, the ledger files are stored in a visible folder.
-        None => {
-            path.push("storage");
-            path.push(format!("ledger-{}", network));
-            path
-        }
-    }
+    path.push("storage");
+    path.push(format!("ledger-{}", network));
+    path
 }
 
 ///
