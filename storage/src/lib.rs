@@ -31,6 +31,27 @@ pub enum StorageMode {
     Custom(PathBuf),
 }
 
+impl From<Option<u16>> for StorageMode {
+    fn from(dev: Option<u16>) -> Self {
+        match dev {
+            Some(id) => StorageMode::Development(id),
+            None => StorageMode::Production,
+        }
+    }
+}
+
+impl From<u16> for StorageMode {
+    fn from(id: u16) -> Self {
+        StorageMode::Development(id)
+    }
+}
+
+impl From<PathBuf> for StorageMode {
+    fn from(path: PathBuf) -> Self {
+        StorageMode::Custom(path)
+    }
+}
+
 ///
 /// Returns the directory for accessing resources from Aleo storage.
 /// The expected directory path to be returned is `~/.aleo/`.
