@@ -161,5 +161,5 @@ pub fn time(metadata: proc_macro::TokenStream, input: proc_macro::TokenStream) -
 #[cfg(not(feature = "time"))]
 #[proc_macro_attribute]
 pub fn time(_metadata: proc_macro::TokenStream, input: proc_macro::TokenStream) -> proc_macro::TokenStream {
-    proc_macro::TokenStream::from(input)
+    input
 }

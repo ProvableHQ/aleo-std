@@ -20,6 +20,17 @@ use std::path::PathBuf;
 /// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
 
+/// An enum to define the operating mode of the Aleo node.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum StorageMode {
+    /// The production mode is used for running a node on the Aleo mainnet.
+    Production,
+    /// The development mode is used for running a node on a local network.
+    Development(u16),
+    /// The custom mode is used for running a node on custom configurations.
+    Custom(PathBuf),
+}
+
 ///
 /// Returns the directory for accessing resources from Aleo storage.
 /// The expected directory path to be returned is `~/.aleo/`.
@@ -41,100 +52,29 @@ pub fn aleo_dir() -> PathBuf {
 ///
 /// In production mode, the expected directory path is `~/.aleo/storage/ledger-{network}`.
 /// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
+/// In custom mode, the expected directory path is `/path/to/custom`.
 ///
-pub fn aleo_ledger_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the ledger is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
-        // In production mode, the ledger is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    };
-
+pub fn aleo_ledger_dir(network: u16, mode: StorageMode) -> PathBuf {
     // Construct the path to the ledger in storage.
-    match dev {
-        // In development mode, the ledger files are stored in a hidden folder.
-        Some(id) => {
-            path.push(format!(".ledger-{}-{}", network, id));
-            path
-        }
-        // In production mode, the ledger files are stored in a visible folder.
-        None => {
+    match mode {
+        // In production mode, the ledger is stored in the `~/.aleo/` directory.
+        StorageMode::Production => {
+            let mut path = aleo_dir();
             path.push("storage");
             path.push(format!("ledger-{}", network));
             path
         }
-    }
-}
-
-///
-/// Returns the directory for accessing the operator files from Aleo storage.
-///
-/// In production mode, the expected directory path is `~/.aleo/storage/operator-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.operator-{network}-{id}`.
-///
-pub fn aleo_operator_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the operator is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
-        // In production mode, the operator is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    };
-
-    // Construct the path to the operator in storage.
-    match dev {
-        // In development mode, the operator files are stored in a hidden folder.
-        Some(id) => {
-            path.push(format!(".operator-{}-{}", network, id));
+        // In development mode, the ledger files are stored in a hidden folder in the repository root directory.
+        StorageMode::Development(id) => {
+            let mut path = match std::env::current_dir() {
+                Ok(current_dir) => current_dir,
+                _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
+            };
+            path.push(format!(".ledger-{}-{}", network, id));
             path
         }
-        // In production mode, the operator files are stored in a visible folder.
-        None => {
-            path.push("storage");
-            path.push(format!("operator-{}", network));
-            path
-        }
-    }
-}
-
-///
-/// Returns the directory for accessing the prover files from Aleo storage.
-///
-/// In production mode, the expected directory path is `~/.aleo/storage/prover-{network}`.
-/// In development mode, the expected directory path is `/path/to/repo/.prover-{network}-{id}`.
-///
-pub fn aleo_prover_dir(network: u16, dev: Option<u16>) -> PathBuf {
-    // Retrieve the starting directory.
-    let mut path = match dev.is_some() {
-        // In development mode, the prover is stored in the repository root directory.
-        true => match std::env::current_dir() {
-            Ok(current_dir) => current_dir,
-            _ => PathBuf::from(env!("CARGO_MANIFEST_DIR")),
-        },
-        // In production mode, the prover is stored in the `~/.aleo/` directory.
-        false => aleo_dir(),
-    };
-
-    // Construct the path to the prover in storage.
-    match dev {
-        // In development mode, the prover files are stored in a hidden folder.
-        Some(id) => {
-            path.push(format!(".prover-{}-{}", network, id));
-            path
-        }
-        // In production mode, the prover files are stored in a visible folder.
-        None => {
-            path.push("storage");
-            path.push(format!("prover-{}", network));
-            path
-        }
+        // In custom mode, the ledger files are stored in the given directory path.
+        StorageMode::Custom(path) => path,
     }
 }
 
@@ -151,26 +91,8 @@ mod tests {
     fn test_aleo_ledger_dir() {
         println!(
             "{:?} exists: {:?}",
-            aleo_ledger_dir(2, None),
-            aleo_ledger_dir(2, None).exists()
-        );
-    }
-
-    #[test]
-    fn test_aleo_operator_dir() {
-        println!(
-            "{:?} exists: {:?}",
-            aleo_operator_dir(2, None),
-            aleo_operator_dir(2, None).exists()
-        );
-    }
-
-    #[test]
-    fn test_aleo_prover_dir() {
-        println!(
-            "{:?} exists: {:?}",
-            aleo_prover_dir(2, None),
-            aleo_prover_dir(2, None).exists()
+            aleo_ledger_dir(2, StorageMode::Production),
+            aleo_ledger_dir(2, StorageMode::Production).exists()
         );
     }
 }
