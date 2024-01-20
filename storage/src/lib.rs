@@ -21,7 +21,7 @@ use std::path::PathBuf;
 const ALEO_DIRECTORY: &str = ".aleo";
 
 /// An enum to define the operating mode of the Aleo node.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum StorageMode {
     /// The production mode is used for running a node on the Aleo mainnet.
     Production,
