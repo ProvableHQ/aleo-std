@@ -54,7 +54,7 @@ impl From<PathBuf> for StorageMode {
 
 impl StorageMode {
     /// Returns the development ID if the mode is development.
-    fn dev(&self) -> Option<u16> {
+    pub const fn dev(&self) -> Option<u16> {
         match self {
             StorageMode::Production => None,
             StorageMode::Development(id) => Some(*id),
