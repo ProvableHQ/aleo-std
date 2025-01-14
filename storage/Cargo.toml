@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies.dirs]
 version = "4.0"
+
+[dependencies.tempfile]
+version = "3.15"
