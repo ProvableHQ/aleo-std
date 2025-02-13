@@ -34,6 +34,16 @@ pub enum StorageMode {
     Test(Option<Arc<TempDir>>),
 }
 
+impl StorageMode {
+    pub fn new_test(tempdir: Option<Arc<TempDir>>) -> Self {
+        if tempdir.is_some() {
+            Self::Test(tempdir)
+        } else {
+            Self::Test(Some(Arc::new(tempfile::TempDir::with_prefix("aleo_storage_").unwrap())))
+        }
+    }
+}
+
 impl PartialEq for StorageMode {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
@@ -61,16 +71,6 @@ impl From<PathBuf> for StorageMode {
 impl From<Arc<TempDir>> for StorageMode {
     fn from(tempdir: Arc<TempDir>) -> Self {
         StorageMode::Test(Some(tempdir))
-    }
-}
-
-impl From<Option<Arc<TempDir>>> for StorageMode {
-    fn from(tempdir: Option<Arc<TempDir>>) -> Self {
-        if tempdir.is_some() {
-            Self::Test(tempdir)
-        } else {
-            Self::Test(Some(Arc::new(tempfile::TempDir::with_prefix("aleo_storage_").unwrap())))
-        }
     }
 }
 
