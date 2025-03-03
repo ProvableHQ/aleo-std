@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std-storage"
-version = "0.1.7"
+version = "1.0.0"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Convenience methods for accessing resources in Aleo storage"
 license = "GPL-3.0"
@@ -8,3 +8,6 @@ edition = "2018"
 
 [dependencies.dirs]
 version = "4.0"
+
+[dependencies.tempfile]
+version = "3.15"
