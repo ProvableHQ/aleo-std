@@ -15,13 +15,14 @@
 // along with the aleo-std library. If not, see <https://www.gnu.org/licenses/>.
 
 use dirs::home_dir;
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
+use tempfile::TempDir;
 
 /// The directory name for Aleo-related resources.
 const ALEO_DIRECTORY: &str = ".aleo";
 
 /// An enum to define the operating mode of the Aleo node.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug)]
 pub enum StorageMode {
     /// The production mode is used for running a node on the Aleo mainnet.
     Production,
@@ -29,16 +30,31 @@ pub enum StorageMode {
     Development(u16),
     /// The custom mode is used for running a node on custom configurations.
     Custom(PathBuf),
+    /// Test-only ephemeral storage which self-destructs afterwards.
+    Test(Option<Arc<TempDir>>),
 }
 
-impl From<Option<u16>> for StorageMode {
-    fn from(dev: Option<u16>) -> Self {
-        match dev {
-            Some(id) => StorageMode::Development(id),
-            None => StorageMode::Production,
+impl StorageMode {
+    pub fn new_test(tempdir: Option<Arc<TempDir>>) -> Self {
+        if tempdir.is_some() {
+            Self::Test(tempdir)
+        } else {
+            Self::Test(Some(Arc::new(tempfile::TempDir::with_prefix("aleo_storage_").unwrap())))
         }
     }
 }
+
+impl PartialEq for StorageMode {
+    fn eq(&self, other: &Self) -> bool {
+        match (self, other) {
+            (Self::Test(Some(tempdir1)), Self::Test(Some(tempdir2))) => {
+                tempdir1.path() == tempdir2.path()
+            },
+            (a, b) => a == b,
+        }
+    }
+}
+impl Eq for StorageMode {}
 
 impl From<u16> for StorageMode {
     fn from(id: u16) -> Self {
@@ -52,13 +68,18 @@ impl From<PathBuf> for StorageMode {
     }
 }
 
+impl From<Arc<TempDir>> for StorageMode {
+    fn from(tempdir: Arc<TempDir>) -> Self {
+        StorageMode::Test(Some(tempdir))
+    }
+}
+
 impl StorageMode {
     /// Returns the development ID if the mode is development.
     pub const fn dev(&self) -> Option<u16> {
         match self {
-            StorageMode::Production => None,
-            StorageMode::Development(id) => Some(*id),
-            StorageMode::Custom(_) => None,
+            Self::Development(id) => Some(*id),
+            Self::Production | Self::Custom(_) | Self::Test(_) => None,
         }
     }
 }
@@ -86,7 +107,7 @@ pub fn aleo_dir() -> PathBuf {
 /// In development mode, the expected directory path is `/path/to/repo/.ledger-{network}-{id}`.
 /// In custom mode, the expected directory path is `/path/to/custom`.
 ///
-pub fn aleo_ledger_dir(network: u16, mode: StorageMode) -> PathBuf {
+pub fn aleo_ledger_dir(network: u16, mode: &StorageMode) -> PathBuf {
     // Construct the path to the ledger in storage.
     match mode {
         // In production mode, the ledger is stored in the `~/.aleo/` directory.
@@ -106,7 +127,15 @@ pub fn aleo_ledger_dir(network: u16, mode: StorageMode) -> PathBuf {
             path
         }
         // In custom mode, the ledger files are stored in the given directory path.
-        StorageMode::Custom(path) => path,
+        StorageMode::Custom(path) => path.to_owned(),
+        StorageMode::Test(tempdir) => {
+            if let Some(tempdir) = tempdir {
+                tempdir.path().to_owned()
+            } else {
+                // aleo_ledger_dir is only ever called with persistent storage, where TempDir must be present.
+                panic!("StorageMode::Test was created in a persistent storage context without a TempDir");
+            }
+        },
     }
 }
 
@@ -123,8 +152,8 @@ mod tests {
     fn test_aleo_ledger_dir() {
         println!(
             "{:?} exists: {:?}",
-            aleo_ledger_dir(2, StorageMode::Production),
-            aleo_ledger_dir(2, StorageMode::Production).exists()
+            aleo_ledger_dir(2, &StorageMode::Production),
+            aleo_ledger_dir(2, &StorageMode::Production).exists()
         );
     }
 }
