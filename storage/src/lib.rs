@@ -47,10 +47,11 @@ impl StorageMode {
 impl PartialEq for StorageMode {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (Self::Test(Some(tempdir1)), Self::Test(Some(tempdir2))) => {
-                tempdir1.path() == tempdir2.path()
-            },
-            (a, b) => a == b,
+            (StorageMode::Production, StorageMode::Production) => true,
+            (StorageMode::Development(id1), StorageMode::Development(id2)) => id1 == id2,
+            (StorageMode::Custom(path1), StorageMode::Custom(path2)) => path1 == path2,
+            (StorageMode::Test(Some(temp1)), StorageMode::Test(Some(temp2))) => temp1.path() == temp2.path(),
+            _ => false,
         }
     }
 }
