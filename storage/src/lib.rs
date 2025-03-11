@@ -136,7 +136,7 @@ pub fn aleo_ledger_dir(network: u16, mode: &StorageMode) -> PathBuf {
                 // aleo_ledger_dir is only ever called with persistent storage, where TempDir must be present.
                 panic!("StorageMode::Test was created in a persistent storage context without a TempDir");
             }
-        },
+        }
     }
 }
 
