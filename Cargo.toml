@@ -21,6 +21,9 @@ aleo-std-timer = { path = "./timer", version = "1.0.1", default-features = false
 [dev-dependencies.rusty-hook]
 version = "0.11.2"
 
+[build-dependencies.walkdir]
+version = "2"
+
 [features]
 default = []
 
