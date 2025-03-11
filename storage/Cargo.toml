@@ -4,7 +4,7 @@ version = "1.0.1"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Convenience methods for accessing resources in Aleo storage"
 license = "GPL-3.0"
-edition = "2018"
+edition = "2021"
 
 [dependencies.dirs]
 version = "4.0"
