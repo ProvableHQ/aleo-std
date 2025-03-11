@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "aleo-std"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "aleo-std-cpu",
  "aleo-std-profiler",
@@ -28,7 +28,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-std-storage"
-version = "1.0.0"
+version = "1.0.1"
 dependencies = [
  "dirs",
  "tempfile",
