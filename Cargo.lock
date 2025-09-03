@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "aleo-std"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "aleo-std-cpu",
  "aleo-std-profiler",
@@ -18,18 +18,18 @@ dependencies = [
 
 [[package]]
 name = "aleo-std-cpu"
-version = "1.0.1"
+version = "1.0.2"
 
 [[package]]
 name = "aleo-std-profiler"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "colored",
 ]
 
 [[package]]
 name = "aleo-std-storage"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "dirs",
  "tempfile",
@@ -37,7 +37,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-std-time"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -46,7 +46,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-std-timed"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -55,7 +55,7 @@ dependencies = [
 
 [[package]]
 name = "aleo-std-timer"
-version = "1.0.1"
+version = "1.0.2"
 dependencies = [
  "colored",
 ]
