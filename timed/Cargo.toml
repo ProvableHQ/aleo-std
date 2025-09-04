@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std-timed"
-version = "1.0.2"
+version = "1.0.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A profiler to conveniently time function executions"
 license = "Apache-2.0"

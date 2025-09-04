@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std"
-version = "1.0.2"
+version = "1.0.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A standard library for Aleo repositories"
 exclude = ["**/*.md"]
@@ -11,12 +11,12 @@ edition = "2021"
 members = [ "cpu", "profiler", "storage", "time", "timed", "timer" ]
 
 [dependencies]
-aleo-std-cpu = { path = "./cpu", version = "1.0.2", default-features = false, optional = true }
-aleo-std-profiler = { path = "./profiler", version = "1.0.2", default-features = false }
-aleo-std-storage = { path = "./storage", version = "1.0.2", default-features = false, optional = true }
-aleo-std-time = { path = "./time", version = "1.0.2", default-features = false }
-aleo-std-timed = { path = "./timed", version = "1.0.2", default-features = false }
-aleo-std-timer = { path = "./timer", version = "1.0.2", default-features = false }
+aleo-std-cpu = { path = "./cpu", version = "1.0.3", default-features = false, optional = true }
+aleo-std-profiler = { path = "./profiler", version = "1.0.3", default-features = false }
+aleo-std-storage = { path = "./storage", version = "1.0.3", default-features = false, optional = true }
+aleo-std-time = { path = "./time", version = "1.0.3", default-features = false }
+aleo-std-timed = { path = "./timed", version = "1.0.3", default-features = false }
+aleo-std-timer = { path = "./timer", version = "1.0.3", default-features = false }
 
 [dev-dependencies.rusty-hook]
 version = "0.11.2"

@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std-cpu"
-version = "1.0.2"
+version = "1.0.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "Convenience method for retrieving CPU information"
 license = "Apache-2.0"

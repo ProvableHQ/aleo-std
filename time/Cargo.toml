@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std-time"
-version = "1.0.2"
+version = "1.0.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A convenience attribute to time functions"
 license = "Apache-2.0"

@@ -1,6 +1,6 @@
 [package]
 name = "aleo-std-timer"
-version = "1.0.2"
+version = "1.0.3"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A timer to conveniently time code blocks"
 license = "Apache-2.0"
