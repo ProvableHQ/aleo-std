@@ -3,7 +3,7 @@ name = "aleo-std-timed"
 version = "1.0.2"
 authors = [ "The Aleo Team <hello@aleo.org>" ]
 description = "A profiler to conveniently time function executions"
-license = "GPL-3.0"
+license = "Apache-2.0"
 edition = "2021"
 
 [lib]
