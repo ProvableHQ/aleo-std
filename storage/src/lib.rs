@@ -29,7 +29,9 @@ pub enum StorageMode {
     /// The development mode is used for running a node on a local network.
     Development(u16),
     /// The custom mode is used for running a node on custom configurations.
-    Custom(PathBuf),
+    /// The second, optional path is used if the storage is to be opened in
+    /// secondary mode.
+    Custom(PathBuf, Option<PathBuf>),
     /// Test-only ephemeral storage which self-destructs afterwards.
     Test(Option<Arc<TempDir>>),
 }
@@ -49,7 +51,7 @@ impl PartialEq for StorageMode {
         match (self, other) {
             (StorageMode::Production, StorageMode::Production) => true,
             (StorageMode::Development(id1), StorageMode::Development(id2)) => id1 == id2,
-            (StorageMode::Custom(path1), StorageMode::Custom(path2)) => path1 == path2,
+            (StorageMode::Custom(primary1, secondary1), StorageMode::Custom(primary2, secondary2)) => primary1 == primary2 && secondary1 == secondary2,
             (StorageMode::Test(Some(temp1)), StorageMode::Test(Some(temp2))) => temp1.path() == temp2.path(),
             _ => false,
         }
@@ -64,8 +66,14 @@ impl From<u16> for StorageMode {
 }
 
 impl From<PathBuf> for StorageMode {
-    fn from(path: PathBuf) -> Self {
-        StorageMode::Custom(path)
+    fn from(primary_path: PathBuf) -> Self {
+        StorageMode::Custom(primary_path, None)
+    }
+}
+
+impl From<(PathBuf, Option<PathBuf>)> for StorageMode {
+    fn from((primary_path, secondary_path): (PathBuf, Option<PathBuf>)) -> Self {
+        StorageMode::Custom(primary_path, secondary_path)
     }
 }
 
@@ -80,7 +88,7 @@ impl StorageMode {
     pub const fn dev(&self) -> Option<u16> {
         match self {
             Self::Development(id) => Some(*id),
-            Self::Production | Self::Custom(_) | Self::Test(_) => None,
+            Self::Production | Self::Custom(..) | Self::Test(_) => None,
         }
     }
 }
@@ -128,7 +136,9 @@ pub fn aleo_ledger_dir(network: u16, mode: &StorageMode) -> PathBuf {
             path
         }
         // In custom mode, the ledger files are stored in the given directory path.
-        StorageMode::Custom(path) => path.to_owned(),
+        StorageMode::Custom(primary, _) => {
+            primary.to_owned()
+        },
         StorageMode::Test(tempdir) => {
             if let Some(tempdir) = tempdir {
                 tempdir.path().to_owned()
@@ -137,6 +147,14 @@ pub fn aleo_ledger_dir(network: u16, mode: &StorageMode) -> PathBuf {
                 panic!("StorageMode::Test was created in a persistent storage context without a TempDir");
             }
         }
+    }
+}
+
+pub fn aleo_secondary_ledger_dir(_network: u16, mode: &StorageMode) -> Option<PathBuf> {
+    if let StorageMode::Custom(_, secondary) = mode {
+        secondary.clone()
+    } else {
+        None
     }
 }
 
